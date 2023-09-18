@@ -172,32 +172,13 @@ function activate(context) {
 
 	});
 
-	// let Salvar = vscode.workspace.onDidSaveTextDocument(function(setting) {
-
-	// 	const APP_FILE =  vscode.window.showSaveDialog({
-	// 		filters: {
-	// 		  'Job Control files': ['jcl'],
-	// 		  'All files (*.*)': ['*']
-	// 		},
-	// 		saveLabel: 'Save',
-	// 	  });
-	// 	// setting = vscode.Uri.parse("untitled:" + APP_FILE);
-	// 	a = APP_FILE;
-	// 	return global.updateTags();
-	// 	}
-	// )
 
 	context.subscriptions.push(disposable);
 	context.subscriptions.push(disposable2);
 	context.subscriptions.push(disposable3);
 	context.subscriptions.push(disposable4);
 	context.subscriptions.push(disposable5);
-	// context.subscriptions.push(Salvar);
 };
-/////////////////////////////////////////////////////////////////////////////
-// function Salvar() {
-
-// }
 /////////////////////////////////////////////////////////////////////////////
 function seleccao (Tipo) {
 	console.log("Trata Selecção");
@@ -435,7 +416,7 @@ let jobIn2 = `
   INREC    FIELDS=(`
 				let jobFim = `)
 //*`;
-// OUTREC   FIELDS=(1,&MAXLREC,SQZ=(SHIFT=LEFT,MID=C' '))
+
 const quadroToCSV = FazSymnaes(quadro);
 				let Symnames = '';
 				let TotalCSV = -1;
