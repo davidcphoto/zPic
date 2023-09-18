@@ -1,0 +1,165 @@
+{
+  "name": "zPic",
+  "displayName": "zPic",
+  "icon": "/images/icon.png",
+  "description": "Pic length calculator for Cobol",
+  "version": "0.0.2",
+  "publisher": "David Canto",
+  "engines": {
+    "vscode": "^1.76.0"
+  },
+  "categories": [
+    "Visualization"
+  ],
+  "activationEvents": [],
+  "main": "./extension.js",
+  "contributes": {
+    "commands": [{
+        "command": "zPic.Calcular",
+        "title": "zPic - Total length"
+      },{
+        "command": "zPic.Listar",
+        "title": "zPic - List all variables lengths"
+      },{
+        "command": "zPic.Symn",
+        "title": "zPic - Generate Symnames"
+      },{
+        "command": "zPic.ConvToCSV",
+        "title": "zPic - Generate Job to convert a Flat File to CSV File"
+      },{
+        "command": "zPic.ConvFromCSV",
+        "title": "zPic - Generate Job to convert a CSV file to Flat File"
+      }],
+      "submenus": [
+        {
+          "id": "zPic.submenu",
+          "label": "zPic length calculation"
+      },
+      {
+        "id": "zPic.submenuJCL",
+        "label": "zPic Convertion JCL"
+    }
+    ],
+  "menus": {
+    "editor/context": [
+      {
+        "submenu": "zPic.submenu",
+        "group": "zPic"
+      }
+    ],
+    "zPic.submenu": [
+      {
+        "when": "resourceLangId == cobol",
+        "command": "zPic.Calcular",
+        "group": "Zpic@1"
+      },
+      {
+        "when": "resourceLangId == cobol",
+        "command": "zPic.Listar",
+        "group": "Zpic@2"
+      },
+      {
+        "when": "resourceLangId == cobol",
+        "command": "zPic.Symn",
+        "group": "Zpic@3"
+      },
+      {
+        "submenu": "zPic.submenuJCL",
+        "group": "zPic@4"
+      }
+    ],
+    "zPic.submenuJCL": [
+      {
+        "when": "resourceLangId == cobol",
+        "command": "zPic.ConvFromCSV",
+        "group": "Zpic2@1"
+      },
+      {
+        "when": "resourceLangId == cobol",
+        "command": "zPic.ConvToCSV",
+        "group": "Zpic2@2"
+      }
+    ]
+  },
+  "configuration": {
+    "title": "ZPic calculator",
+    "properties": {
+      "zPic.TotalLength": {
+        "type": "boolean",
+        "description": "Add the sum of the lengths of all selected variables to the Clipboard",
+        "order":1    
+      },
+      "zPic.Job.Symnames.DDStatment": {
+        "type": "boolean",
+        "description": "Include Synames title.\nOnly Valid when Symnames included into the Clipboard\nExemple: //SYNAMES DD *",
+        "default":"yes",
+        "order":2    
+      },
+      "zPic.Job.Symnames.Destiny": {
+        "type": "string",
+        "description": "Add Symnames declaration to Clipboard or to a Parameter document.",
+        "default": "Clipboard",
+        "enum": ["Clipboard", "Parameter Document"],
+        "enumDescriptions": [
+          "Add's the Symnames declaration to the Clipboard",
+          "Add's the Symnames declaration to  new Parameter Document in a editor'"
+        ],
+        "order":3    
+      },
+      "zPic.Job.Card.JobName": {
+        "type":  "string",
+        "description": "Job name to be used in Job Card.",
+        "default": "<JobName>",
+        "order":4,
+        "minLength":1,
+        "maxLength":8
+      },
+      "zPic.Job.Card.Class": {
+        "type":  "string",
+        "description": "Class to be included in the Job Card.\nExemple: CLASS=X",
+        "default": "<Class>",
+        "order":5,
+        "minLength":1,
+        "maxLength":1
+      },
+      "zPic.Job.Card.MsgClass": {
+        "type":  "string",
+        "description": "Message Class to be included in the Job Card.\nExemple: MSGCLASS=X",
+        "default": "<MsgClass>",
+        "order":6,
+        "minLength":1,
+        "maxLength":1
+      },
+      "zPic.Job.Files.Input": {
+        "type": "string",
+        "description": "File to be used in the job as input file.\nFile names can be defined/changed in editor.",
+        "default":"<Input File>",
+        "order":7
+      },
+      "zPic.Job.Files.Output": {
+        "type": "string",
+        "description": "File to be used in the job as output file.\nFile names can be defined/changed in editor.",
+        "default":"<Output File>",
+        "order":8    
+      }
+    }
+  },
+  "scripts": {
+    "lint": "eslint .",
+    "pretest": "npm run lint",
+    "test": "node ./test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.76.0",
+    "@types/glob": "^8.1.0",
+    "@types/mocha": "^10.0.1",
+    "@types/node": "16.x",
+    "eslint": "^8.34.0",
+    "glob": "^8.1.0",
+    "mocha": "^10.2.0",
+    "typescript": "^4.9.5",
+    "@vscode/test-electron": "^2.2.3"
+  }
+}
+
+}
