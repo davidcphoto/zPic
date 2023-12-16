@@ -3,7 +3,7 @@
   "displayName": "zPic",
   "icon": "images/Icon.png",
   "description": "Pic length calculator for Cobol",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "publisher": "DavidCanto",
   "repository": {"url": "https://github.com/davidcphoto/zPic.git"},
   "engines": {
