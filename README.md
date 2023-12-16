@@ -1,4 +1,4 @@
-![Icon.png](https://github.com/davidcphoto/zPic/blob/be1a8c1fd9463ad3737c181f3e02eea49d69f422/images/Icon.png) # zPic README
+# ![Icon.png](https://github.com/davidcphoto/zPic/blob/be1a8c1fd9463ad3737c181f3e02eea49d69f422/images/Icon.png) zPic README
 
 zPic Calculator extension calculates of the PIC from the variables definition ina a Cobol Program or Copybook. Pic calculates the length for alphanumeric, numeric, computational, binary.
 
