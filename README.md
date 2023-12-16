@@ -1,6 +1,6 @@
 # zPic README
-
-zPic Calculater extension calculates of the PIC from the variables definition ina a Cobol Program or Copybook. Pic calculates the length for alphanumeric, numeric, computational, binary.
+![Icon.png](https://github.com/davidcphoto/zPic/blob/be1a8c1fd9463ad3737c181f3e02eea49d69f422/images/Icon.png)
+zPic Calculator extension calculates of the PIC from the variables definition ina a Cobol Program or Copybook. Pic calculates the length for alphanumeric, numeric, computational, binary.
 
 
 ## Features
@@ -19,9 +19,9 @@ zPic Calculater extension calculates of the PIC from the variables definition in
 
 - zPic - Generate Symnames: Generates a SYSNAMES declaration to use in JCL as variables.
 
-- zPic - Generate Job to convert a Flat File to CSV File: A Job Control Language document to convert a Flat File with the definition of selected fields to a CSV file. The generated JCL is showned in a editor.
+- zPic - Generate Job to convert a Flat File to CSV File: A Job Control Language document to convert a Flat File with the definition of selected fields to a CSV file. The generated JCL is showed in a editor.
 
-- zPic - Generate Job to convert a CSV file to Flat File: A Job Control Language document to convert a CSV File to a Flat File with the definition of selected fields. The generated JCL is showned in a editor.
+- zPic - Generate Job to convert a CSV file to Flat File: A Job Control Language document to convert a CSV File to a Flat File with the definition of selected fields. The generated JCL is showed in a editor.
 
 
 ## Known Issues
@@ -31,6 +31,7 @@ zPic Calculater extension calculates of the PIC from the variables definition in
 
 ## Release Notes
 
-### 1.0.0 - 2023-03-24
+### 0.0.3 - 2023-12-16
+### 0.0.2 - 2023-03-24
 
 -Initial release of zPic Calculator for VS-Code
