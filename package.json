@@ -1,10 +1,10 @@
 {
   "name": "zPic",
   "displayName": "zPic",
-  "icon": "/images/icon.png",
   "description": "Pic length calculator for Cobol",
   "version": "0.0.2",
-  "publisher": "David Canto",
+  "publisher": "DavidCanto",
+  "repository": {"url": "https://github.com/davidcphoto/zPic.git"},
   "engines": {
     "vscode": "^1.76.0"
   },
@@ -87,13 +87,13 @@
       "zPic.TotalLength": {
         "type": "boolean",
         "description": "Add the sum of the lengths of all selected variables to the Clipboard",
-        "order":1    
+        "order":1
       },
       "zPic.Job.Symnames.DDStatment": {
         "type": "boolean",
         "description": "Include Synames title.\nOnly Valid when Symnames included into the Clipboard\nExemple: //SYNAMES DD *",
         "default":"yes",
-        "order":2    
+        "order":2
       },
       "zPic.Job.Symnames.Destiny": {
         "type": "string",
@@ -104,7 +104,7 @@
           "Add's the Symnames declaration to the Clipboard",
           "Add's the Symnames declaration to  new Parameter Document in a editor'"
         ],
-        "order":3    
+        "order":3
       },
       "zPic.Job.Card.JobName": {
         "type":  "string",
@@ -140,7 +140,7 @@
         "type": "string",
         "description": "File to be used in the job as output file.\nFile names can be defined/changed in editor.",
         "default":"<Output File>",
-        "order":8    
+        "order":8
       }
     }
   },
