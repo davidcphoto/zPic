@@ -1,7 +1,7 @@
 {
   "name": "zPic",
   "displayName": "zPic",
-  "icon": "/images/Icon.png",
+  "icon": "images/Icon.png",
   "description": "Pic length calculator for Cobol",
   "version": "0.0.3",
   "publisher": "DavidCanto",
