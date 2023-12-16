@@ -8,13 +8,13 @@ zPic Calculater extension calculates of the PIC from the variables definition in
 
 - zPic Calculator - Total: Returns a message with the sum of the length of all selected variables.
 
-[zPicTotal.png](images/zPicTotal.png)
+![zPicTotal.png](https://github.com/davidcphoto/zPic/blob/6e06eccfd51e33bac4b6c588c7facc98ec80175c/images/zPicList.png)
 
 
 - zPic Calculator - List: Opens a right panel showing the length of every variable in the selection and the total sum of their lengths.
 
 
-[zPicList.png](images/zPicList.png)
+![zPicList.png](images/zPicList.png)
 
 
 - zPic - Generate Symnames: Generates a SYSNAMES declaration to use in JCL as variables.
@@ -31,6 +31,6 @@ zPic Calculater extension calculates of the PIC from the variables definition in
 
 ## Release Notes
 
-### 1.0.0 - 2023-03-24 
+### 1.0.0 - 2023-03-24
 
 -Initial release of zPic Calculator for VS-Code
