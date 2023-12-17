@@ -24,7 +24,7 @@ zPic Calculator extension calculates of the PIC from the variables definition in
 
 - zPic - Generate Job to convert a Flat File to CSV File: A Job Control Language document to convert a Flat File with the definition of selected fields to a CSV file. The generated JCL is showed in a editor.
 
-![zPicList.png](images/zPic%20FlatFileToCSV.gif)
+![zPicList.png](images/zPic%20FlatFileToCsv.gif)
 
 
 - zPic - Generate Job to convert a CSV file to Flat File: A Job Control Language document to convert a CSV File to a Flat File with the definition of selected fields. The generated JCL is showed in a editor.
