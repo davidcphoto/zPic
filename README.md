@@ -40,6 +40,6 @@ zPic Calculator extension calculates of the PIC from the variables definition in
 
 ## Release Notes
 
-### 0.0.4 - 2023-12-16 First publication
+### 0.0.4 - 2023-12-16
 
 -Initial release of zPic Calculator for VS-Code
