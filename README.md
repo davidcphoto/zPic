@@ -35,7 +35,7 @@ zPic Calculator extension calculates of the PIC from the variables definition in
 
 ## Known Issues
 
-- SYMNAMES - does not calculate more than one occurrence.
+- SYMNAMES and the JCL Convertion does not work with occurrences.
 - Redefines are ignored
 
 ## Release Notes
