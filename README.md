@@ -8,8 +8,8 @@ zPic Calculator extension calculates of the PIC from the variables definition in
 
 
 - zPic Calculator - Total: Returns a message with the sum of the length of all selected variables.
-
-![zPic Total gif](images/zPic Total.gif)
+[
+![zPic Total gif](images/zPic Total.gif)](images/zPic%20Total.gif)
 
 
 - zPic Calculator - List: Opens a right panel showing the length of every variable in the selection and the total sum of their lengths.
