@@ -35,10 +35,14 @@ zPic Calculator extension calculates of the PIC from the variables definition in
 
 ## Known Issues
 
-- SYMNAMES and the JCL Convertion does not work with occurrences.
+- SYMNAMES and the JCL Conversion does not work with occurrences.
 - Redefines are ignored
 
 ## Release Notes
+
+### 0.0.5 - 2023-12-19
+
+-Resolved a erro in calculating formatted fields.
 
 ### 0.0.4 - 2023-12-16
 
