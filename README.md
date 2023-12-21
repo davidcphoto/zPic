@@ -9,29 +9,37 @@ zPic Calculator extension calculates of the PIC from the variables definition in
 
 - zPic Calculator - Total: Returns a message with the sum of the length of all selected variables.
 
-![zPicTotal.png](images/zPicList.png)
+![zPic Total gif](images/zPic%20Total.gif)
 
 
 - zPic Calculator - List: Opens a right panel showing the length of every variable in the selection and the total sum of their lengths.
 
-
-![zPicList.png](images/zPicList.png)
+![zPicList.png](images/zPic%20List.gif)
 
 
 - zPic - Generate Symnames: Generates a SYSNAMES declaration to use in JCL as variables.
 
+![zPicList.png](images/zPic%20Symnames.gif)
+
+
 - zPic - Generate Job to convert a Flat File to CSV File: A Job Control Language document to convert a Flat File with the definition of selected fields to a CSV file. The generated JCL is showed in a editor.
 
+![zPicList.png](images/zPic%20FlatFileToCsv.gif)
+
+
 - zPic - Generate Job to convert a CSV file to Flat File: A Job Control Language document to convert a CSV File to a Flat File with the definition of selected fields. The generated JCL is showed in a editor.
+
+![zPicList.png](images/zPic%20CsvToFlatFile.gif)
+
 
 
 ## Known Issues
 
-- SYMNAMES - does not calculate more than one occurrence.
+- SYMNAMES and the JCL Convertion does not work with occurrences.
 - Redefines are ignored
 
 ## Release Notes
 
-### 0.0.4 - 2023-12-16 First publication
+### 0.0.4 - 2023-12-16
 
 -Initial release of zPic Calculator for VS-Code
