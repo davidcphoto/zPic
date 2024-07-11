@@ -42,6 +42,7 @@ function activate(context) {
 		console.log("Registou o Calcular");
 
 		// Display a message box to the user
+
 		var selectedText = seleccao(0);
 
 		if (selectedText != "") {
@@ -53,6 +54,23 @@ function activate(context) {
 		}
 	});
 
+	let disposable6 = vscode.commands.registerCommand('zPic.Total', function () {
+		// The code you place here will be executed every time your command is executed
+		console.log("Registou o Calcular");
+		let texto = vscode;
+
+		var resultado;
+		// Display a message box to the user
+		if (context) {
+			resultado = Recebe(0);
+		} else {
+			vscode.window.showInformationMessage('zPic! no variables available.');
+			resultado = '';
+		}
+
+
+		return resultado;
+	});
 
 	let disposable2 = vscode.commands.registerCommand('zPic.Listar', function () {
 		// The code you place here will be executed every time your command is executed
@@ -178,6 +196,7 @@ function activate(context) {
 	context.subscriptions.push(disposable3);
 	context.subscriptions.push(disposable4);
 	context.subscriptions.push(disposable5);
+	context.subscriptions.push(disposable6);
 };
 /////////////////////////////////////////////////////////////////////////////
 function seleccao(Tipo) {
@@ -207,6 +226,32 @@ function seleccao(Tipo) {
 	}
 
 }
+
+
+/////////////////////////////////////////////////////////////////////////////
+function Recebe(Texto) {
+	console.log("Trata texto");
+
+	const args = [
+		vscode.Uri.parse("https://foobar.com"),
+		vscode.Uri.arguments
+	];
+	const encodedArgs = encodeURIComponent(
+		JSON.stringify(args)
+	);
+	console.log(encodedArgs);
+
+
+	if (Texto != '') {
+
+		return FormataQuadro(Texto.toUpperCase(), 0);
+
+	} else {
+		return '0';
+	}
+}
+
+
 
 /////////////////////////////////////////////////////////////////////////////
 function FormataQuadro(Seleccao, tipo) {

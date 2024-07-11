@@ -15,10 +15,32 @@
   "activationEvents": [],
   "main": "./extension.js",
   "contributes": {
+    "inputs": [
+      {
+        "id": "commandInput",
+        "type": "command",
+        "command": "zPic.Total",
+        "args": {
+          "foo": "${someargument}"
+        }
+      }
+    ],
+    "configurations": [
+      {
+        "name": "Launch",
+        "type": "node",
+        "request": "launch",
+        "program": "${input:commandInput}"
+      }
+    ],
     "commands": [{
+        "command": "zPic.Total",
+        "title": "zPic - Rotina"
+      },{
         "command": "zPic.Calcular",
         "title": "zPic - Total length"
-      },{
+      },
+      {
         "command": "zPic.Listar",
         "title": "zPic - List all variables lengths"
       },{
