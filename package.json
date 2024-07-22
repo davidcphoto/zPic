@@ -3,8 +3,9 @@
   "displayName": "zPic",
   "icon": "images/Icon.png",
   "description": "Pic length calculator for Cobol",
-  "version": "0.0.5",
+  "version": "1.0.0",
   "publisher": "DavidCanto",
+  "keywords": ["cobol", "mainframe", "David Canto", "zos", "copybook"],
   "repository": {"url": "https://github.com/davidcphoto/zPic.git"},
   "engines": {
     "vscode": "^1.76.0"
