@@ -1,170 +1,282 @@
 {
   "name": "zPic",
   "displayName": "zPic",
-  "icon": "images/Icon.png",
+  "icon": "Imagens/zPic.png",
+  "repository": {"url": "https://github.com/davidcphoto/zPic2.git"},
   "description": "Pic length calculator for Cobol",
-  "version": "1.0.0",
-  "publisher": "DavidCanto",
-  "keywords": ["cobol", "mainframe", "David Canto", "zos", "copybook"],
-  "repository": {"url": "https://github.com/davidcphoto/zPic.git"},
+  "version": "2.0.0",
+  "keywords": ["cobol", "mainframe", "David Canto", "zos", "copybook","pic", "zPic", "copy", "length", "zowe"],
   "engines": {
-    "vscode": "^1.76.0"
+    "vscode": "^1.99.0"
   },
   "categories": [
-    "Visualization"
+    "Other"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
   "main": "./extension.js",
   "contributes": {
-    "inputs": [
+    "commands": [
       {
-        "id": "commandInput",
-        "type": "command",
-        "command": "zPic.Total",
-        "args": {
-          "foo": "${someargument}"
-        }
-      }
-    ],
-    "configurations": [
+        "command": "zPic.Lista",
+        "title": "zPic - List all variables lengths"
+      },
       {
-        "name": "Launch",
-        "type": "node",
-        "request": "launch",
-        "program": "${input:commandInput}"
-      }
-    ],
-    "commands": [{
-        "command": "zPic.Total",
-        "title": "zPic - Rotina"
-      },{
-        "command": "zPic.Calcular",
+        "command": "zPic.Symnames",
+        "title": "zPic - Generates Symnames"
+      },
+      {
+        "command": "zPic.Flat_CSV",
+        "title": "zPic - Generate Job to convert a Flat File to CSV File"
+      },
+      {
+        "command": "zPic.CSV_Flat",
+        "title": "zPic - Generate Job to convert a CSV file to Flat File"
+      },
+      {
+        "command": "zPic.Total_Local",
         "title": "zPic - Total length"
       },
       {
-        "command": "zPic.Listar",
+        "command": "zPic.Lista_Local",
         "title": "zPic - List all variables lengths"
-      },{
-        "command": "zPic.Symn",
-        "title": "zPic - Generate Symnames"
-      },{
-        "command": "zPic.ConvToCSV",
+      },
+      {
+        "command": "zPic.Symnames_Local",
+        "title": "zPic - Generates Symnames"
+      },
+      {
+        "command": "zPic.Flat_CSV_Local",
         "title": "zPic - Generate Job to convert a Flat File to CSV File"
-      },{
-        "command": "zPic.ConvFromCSV",
+      },
+      {
+        "command": "zPic.CSV_Flat_Local",
         "title": "zPic - Generate Job to convert a CSV file to Flat File"
-      }],
-      "submenus": [
-        {
-          "id": "zPic.submenu",
-          "label": "zPic length calculation"
+      },
+      {
+        "command": "zPic.Total_Central",
+        "title": "zPic - Total length"
+      },
+      {
+        "command": "zPic.Lista_Central",
+        "title": "zPic - List all variables lengths"
+      },
+      {
+        "command": "zPic.Symnames_Central",
+        "title": "zPic - Generates Symnames"
+      },
+      {
+        "command": "zPic.Flat_CSV_Central",
+        "title": "zPic - Generate Job to convert a Flat File to CSV File"
+      },
+      {
+        "command": "zPic.CSV_Flat_Central",
+        "title": "zPic - Generate Job to convert a CSV file to Flat File"
+      }
+    ],
+    "submenus": [
+      {
+        "id": "zPic.submenu",
+        "label": "zPic length calculation"
+      },
+      {
+        "id": "zPic.submenu_Local",
+        "label": "zPic length calculation"
+      },
+      {
+        "id": "zPic.submenu_Central",
+        "label": "zPic length calculation"
       },
       {
         "id": "zPic.submenuJCL",
         "label": "zPic Conversion JCL"
+      },
+      {
+        "id": "zPic.submenuJCL_Local",
+        "label": "zPic Conversion JCL"
+      },
+      {
+        "id": "zPic.submenuJCL_Central",
+        "label": "zPic Conversion JCL"
       }
     ],
-  "menus": {
-    "editor/context": [
-      {
-        "submenu": "zPic.submenu",
-        "group": "zPic"
-      }
-    ],
-    "zPic.submenu": [
-      {
-        "when": "resourceLangId == cobol",
-        "command": "zPic.Calcular",
-        "group": "Zpic@1"
-      },
-      {
-        "when": "resourceLangId == cobol",
-        "command": "zPic.Listar",
-        "group": "Zpic@2"
-      },
-      {
-        "when": "resourceLangId == cobol",
-        "command": "zPic.Symn",
-        "group": "Zpic@3"
-      },
-      {
-        "submenu": "zPic.submenuJCL",
-        "group": "zPic@4"
-      }
-    ],
-    "zPic.submenuJCL": [
-      {
-        "when": "resourceLangId == cobol",
-        "command": "zPic.ConvFromCSV",
-        "group": "Zpic2@1"
-      },
-      {
-        "when": "resourceLangId == cobol",
-        "command": "zPic.ConvToCSV",
-        "group": "Zpic2@2"
-      }
-    ]
-  },
-  "configuration": {
-    "title": "ZPic calculator",
-    "properties": {
-      "zPic.TotalLength": {
-        "type": "boolean",
-        "description": "Add the sum of the lengths of all selected variables to the Clipboard",
-        "order":1
-      },
-      "zPic.Job.Symnames.DDStatment": {
-        "type": "boolean",
-        "description": "Include Synames title.\nOnly Valid when Symnames included into the Clipboard\nExemple: //SYNAMES DD *",
-        "default":"yes",
-        "order":2
-      },
-      "zPic.Job.Symnames.Destiny": {
-        "type": "string",
-        "description": "Add Symnames declaration to Clipboard or to a Parameter document.",
-        "default": "Clipboard",
-        "enum": ["Clipboard", "Parameter Document"],
-        "enumDescriptions": [
-          "Add's the Symnames declaration to the Clipboard",
-          "Add's the Symnames declaration to  new Parameter Document in a editor'"
-        ],
-        "order":3
-      },
-      "zPic.Job.Card.JobName": {
-        "type":  "string",
-        "description": "Job name to be used in Job Card.",
-        "default": "<JobName>",
-        "order":4,
-        "minLength":1,
-        "maxLength":8
-      },
-      "zPic.Job.Card.Class": {
-        "type":  "string",
-        "description": "Class to be included in the Job Card.\nExemple: CLASS=X",
-        "default": "<Class>",
-        "order":5,
-        "minLength":1,
-        "maxLength":1
-      },
-      "zPic.Job.Card.MsgClass": {
-        "type":  "string",
-        "description": "Message Class to be included in the Job Card.\nExemple: MSGCLASS=X",
-        "default": "<MsgClass>",
-        "order":6,
-        "minLength":1,
-        "maxLength":1
-      },
-      "zPic.Job.Files.Input": {
-        "type": "string",
-        "description": "File to be used in the job as input file.\nFile names can be defined/changed in editor.",
-        "default":"<Input File>",
-        "order":7
-      },
-      "zPic.Job.Files.Output": {
-        "type": "string",
-        "description": "File to be used in the job as output file.\nFile names can be defined/changed in editor.",
-        "default":"<Output File>",
-        "order":8
+    "menus": {
+      "editor/context": [
+        {
+          "when": "editorLangId==cobol && editorHasSelection",
+          "submenu": "zPic.submenu",
+          "group": "100_zPic"
+        }
+      ],
+      "explorer/context": [
+        {
+          "when": "resourceExtname   == .cpy",
+          "submenu": "zPic.submenu_Local",
+          "group": "200_zPic"
+        }
+      ],
+      "view/item/context": [
+        {
+          "when": "view == zowe.ds.explorer",
+          "submenu": "zPic.submenu_Central",
+          "group": "300_zPic"
+        }
+      ],
+      "zPic.submenu": [
+        {
+          "command": "zPic.Lista",
+          "group": "110_Zpic@1"
+        },
+        {
+          "command": "zPic.Symnames",
+          "group": "110_Zpic@2"
+        },
+        {
+          "submenu": "zPic.submenuJCL",
+          "group": "120_Zpic@3"
+        }
+      ],
+      "zPic.submenuJCL": [
+        {
+          "command": "zPic.CSV_Flat",
+          "group": "121_Zpic@1"
+        },
+        {
+          "command": "zPic.Flat_CSV",
+          "group": "121_Zpic@2"
+        }
+      ],
+      "zPic.submenu_Local": [
+        {
+          "command": "zPic.Total_Local",
+          "group": "210_Zpic@1"
+        },
+        {
+          "command": "zPic.Lista_Local",
+          "group": "210_Zpic@2"
+        },
+        {
+          "command": "zPic.Symnames_Local",
+          "group": "210_Zpic@3"
+        },
+        {
+          "submenu": "zPic.submenuJCL_Local",
+          "group": "220_Zpic@3"
+        }
+      ],
+      "zPic.submenuJCL_Local": [
+        {
+          "command": "zPic.CSV_Flat_Local",
+          "group": "221_Zpic@1"
+        },
+        {
+          "command": "zPic.Flat_CSV_Local",
+          "group": "221_Zpic@2"
+        }
+      ],
+      "zPic.submenu_Central": [
+        {
+          "command": "zPic.Total_Central",
+          "group": "310_Zpic@1"
+        },
+        {
+          "command": "zPic.Lista_Central",
+          "group": "310_Zpic@2"
+        },
+        {
+          "command": "zPic.Symnames_Central",
+          "group": "310_Zpic@3"
+        },
+        {
+          "submenu": "zPic.submenuJCL_Central",
+          "group": "320_Zpic@3"
+        }
+      ],
+      "zPic.submenuJCL_Central": [
+        {
+          "command": "zPic.CSV_Flat_Central",
+          "group": "321_Zpic@1"
+        },
+        {
+          "command": "zPic.Flat_CSV_Central",
+          "group": "321_Zpic@2"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "ZPic calculator",
+      "properties": {
+        "zPic.Job.Card.JobName": {
+          "type": "string",
+          "description": "Name to be used in the definition in the definition of both jcl to convert *csv* files to *flat files*.",
+          "default": "<JobName>",
+          "order": 4,
+          "minLength": 1,
+          "maxLength": 8
+        },
+        "zPic.Job.Card.Class": {
+          "type": "string",
+          "description": "Class to be included in the Job Card.\nExemple: CLASS=X",
+          "default": "<Class>",
+          "order": 5,
+          "minLength": 1,
+          "maxLength": 1
+        },
+        "zPic.Job.Card.MsgClass": {
+          "type": "string",
+          "description": "Message Class to be included in the Job Card.\nExemple: MSGCLASS=X",
+          "default": "<MsgClass>",
+          "order": 6,
+          "minLength": 1,
+          "maxLength": 1
+        },
+        "zPic.Job.Files.Input": {
+          "type": "string",
+          "description": "Default file name to be used in the job as input file.\nFile names can be defined/changed in editor.",
+          "default": "Input.File",
+          "order": 7
+        },
+        "zPic.Job.Files.Output": {
+          "type": "string",
+          "description": "Default file to be used in the job as output file.\nFile names can be defined/changed in editor.",
+          "default": "Output.File",
+          "order": 8
+        },
+        "zPic.CSV.Delimiters": {
+          "type": "string",
+          "description": "CSV delimiters are characters that separate individual data fields within a row on a CSV file.",
+          "default": ";",
+          "order": 9,
+          "minLength": 1,
+          "maxLength": 1,
+          "enum": [
+            ";",
+            ",",
+            "|"
+          ],
+          "enumDescriptions": [
+            "Semicolon",
+            "Coma",
+            "Pipe"
+          ]
+        },
+        "zPic.CSV.DecimalPlaceDelimiters": {
+          "type": "string",
+          "description": "File to be used in the job as output file.\nFile names can be defined/changed in editor.",
+          "default": ",",
+          "order": 10,
+          "enum": [
+            ",",
+            "."
+          ],
+          "enumDescriptions": [
+            "Coma",
+            "Dot"
+          ],
+          "minLength": 1,
+          "maxLength": 1
+        }
       }
     }
   },
@@ -174,16 +286,18 @@
     "test": "node ./test/runTest.js"
   },
   "devDependencies": {
-    "@types/vscode": "^1.76.0",
-    "@types/glob": "^8.1.0",
-    "@types/mocha": "^10.0.1",
-    "@types/node": "16.x",
-    "eslint": "^8.34.0",
-    "glob": "^8.1.0",
+    "@types/mocha": "^10.0.2",
+    "@types/node": "18.x",
+    "@types/vscode": "^1.99.0",
+    "@vscode/test-electron": "^2.3.4",
+    "eslint": "^8.50.0",
+    "glob": "^10.3.3",
     "mocha": "^10.2.0",
-    "typescript": "^4.9.5",
-    "@vscode/test-electron": "^2.2.3"
+    "typescript": "^5.2.2"
+  },
+  "dependencies": {
+    "@zowe/imperative": "^8.20.0",
+    "@zowe/zos-files-for-zowe-sdk": "^8.20.0",
+    "@zowe/zowe-explorer-api": "^3.2.0"
   }
-}
-
 }
