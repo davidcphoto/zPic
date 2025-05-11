@@ -1,26 +1,17 @@
-
 const vscode = require('vscode');
-const fs = require('fs');
-const qRedefines = 0;
-const qNivel = 1;
-const qCampo = 2;
-const qCasasDecimais = 3;
-const qPic = 4;
-const qFormato = 5;
-const qTamanhoOrigem = 6;
-const qOcorrencias = 7;
-const qRec = 8;
-const qInicio = 9;
-const qFim = 10;
-const qRecMultiplicado = 11;
-const NomeJCL = vscode.workspace.getConfiguration('zPic').get('Job.Card.JobName');
-const Class = vscode.workspace.getConfiguration('zPic').get('Job.Card.Class');
-const MsgClass = vscode.workspace.getConfiguration('zPic').get('Job.Card.MsgClass');
-const InputFile = vscode.workspace.getConfiguration('zPic').get('Job.Files.Input');
-const OutputFile = vscode.workspace.getConfiguration('zPic').get('Job.Files.Output');
-const TotalLengthClipboard = vscode.workspace.getConfiguration('zPic').get('TotalLength');
-const SysnamesTitle = vscode.workspace.getConfiguration('zPic').get('Job.Symnames.DDStatment');
-let Lista = [];
+const zPic = require("./zPicClass.js");
+// const Imperative = require("@zowe/imperative");
+const zos_files = require("@zowe/zos-files-for-zowe-sdk");
+const zowe_explorer_api = require('@zowe/zowe-explorer-api');
+let InputFile = vscode.workspace.getConfiguration('zPic').get('Job.Files.Input');
+let OutputFile = vscode.workspace.getConfiguration('zPic').get('Job.Files.Output');
+// let InputFile = "${InputFile}";
+// let OutputFile = vscode.workspace.getConfiguration('zPic').get('Job.Files.Output');
+
+// const InputFile = "${InputFile}";
+// const OutputFile = "${OutputFile}";
+
+let decoration;
 
 // This method is called when your extension is activated
 // Your extension is activated the very first time the command is executed
@@ -30,1259 +21,247 @@ let Lista = [];
  */
 function activate(context) {
 
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
 	console.log('Congratulations, your extension "zPic" is now active!');
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with  registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('zPic.Calcular', function () {
-		// The code you place here will be executed every time your command is executed
-		console.log("Registou o Calcular");
-
-		// Display a message box to the user
-
-		var selectedText = seleccao(0);
-
-		if (selectedText != "") {
-			vscode.window.showInformationMessage('zPic! Total length for selection: ' + selectedText);
-		}
-
-		if (TotalLengthClipboard == true) {
-			vscode.env.clipboard.writeText(selectedText);
-		}
+	vscode.window.onDidChangeTextEditorSelection((event) => {
+		const newSelection = event.selections[0];
+		calculaSelecção(newSelection);
 	});
 
-	let disposable6 = vscode.commands.registerCommand('zPic.Total', function () {
-		// The code you place here will be executed every time your command is executed
-		console.log("Registou o Calcular");
-		let texto = vscode;
 
-		var resultado;
-		// Display a message box to the user
-		if (context) {
-			resultado = Recebe(0);
+	let Total_Local = vscode.commands.registerCommand('zPic.Total_Local', function (file = vscode.Uri) {
+
+		console.log('Calcula o tutal de um copybook na maquina local ' + file);
+
+		vscode.workspace.openTextDocument(file).then((document) => {
+			let text = document.getText();
+			const Total = CalculaLREC(text);
+			vscode.window.showInformationMessage('zPic - Total length: ' + Total);
+		});
+
+	});
+
+	let Total_Central = vscode.commands.registerCommand('zPic.Total_Central', function (node = zowe_explorer_api.ZoweTreeNode) {
+
+
+		const Ficheiro = node.label;
+		const sessao = node.mParent.mParent.session;
+		const Biblioteca = node.mParent.label;
+
+		if (sessao) {
+			abrirFicheiroTXT(sessao, Biblioteca + "(" + Ficheiro + ")").then(texto => {
+
+				const Total = CalculaLREC(texto);
+				vscode.window.showInformationMessage('zPic - Total length: ' + Total);
+
+
+			});
+
+
+
 		} else {
-			vscode.window.showInformationMessage('zPic! no variables available.');
-			resultado = '';
+			vscode.window.showErrorMessage('No Zowe Explorer active session')
 		}
-
-
-		return resultado;
 	});
 
-	let disposable2 = vscode.commands.registerCommand('zPic.Listar', function () {
-		// The code you place here will be executed every time your command is executed
-		console.log("Registou o Listar");
+	let Lista = vscode.commands.registerCommand('zPic.Lista', function () {
 
-		// Display a message box to the user
-		// vscode.window.createWebviewPanel
-
-		// Display a message box to the user
-		const painel = vscode.window.createWebviewPanel('zPic', 'Pic Calculator', vscode.ViewColumn.Two)
-
-		painel.webview.html = seleccao(1);
-
-
+		console.log('Lista');
+		calculaLista();
 	});
 
 
-	let disposable3 = vscode.commands.registerCommand('zPic.Symn', function () {
-		// The code you place here will be executed every time your command is executed
+	let Lista_Local = vscode.commands.registerCommand('zPic.Lista_Local', function (file = vscode.Uri) {
 
-		console.log("Registou o Symnames");
-		var selectedText = seleccao(2);
+		console.log('Lista Local');
 
-		if (selectedText.length > 0) {
-			vscode.env.clipboard.writeText(selectedText);
-			vscode.window.showInformationMessage('zPic! Symnames declaration added to clipboard');
-		}
+		vscode.workspace.openTextDocument(file).then((document) => {
+			let texto = document.getText();
 
-
+			trataLista(texto);
+		});
 	});
 
-	let disposable4 = vscode.commands.registerCommand('zPic.ConvToCSV', function () {
-		// The code you place here will be executed every time your command is executed
-
-		console.log("Converter Flat File a CSV");
-		var selectedText = seleccao(3);
 
 
-		if (selectedText.length > 0) {
+	let Lista_Central = vscode.commands.registerCommand('zPic.Lista_Central', function (node = zowe_explorer_api.ZoweTreeNode) {
 
 
-			if (vscode.workspace.workspaceFolders !== undefined) {
+		const Ficheiro = node.label;
+		const sessao = node.mParent.mParent.session;
+		const Biblioteca = node.mParent.label;
 
-				var caminho = vscode.workspace.workspaceFolders[0].uri.fsPath + "\\JCL\\FFtoCSV.jcl"
+		if (sessao) {
+			abrirFicheiroTXT(sessao, Biblioteca + "(" + Ficheiro + ")").then(texto => {
 
-				for (let i = 1; fs.existsSync(caminho); i++) {
-					caminho = vscode.workspace.workspaceFolders[0].uri.fsPath + "\\JCL\\FFtoCSV" + i + ".jcl";
-				}
+				trataLista(texto);
 
-				var setting = vscode.Uri.parse("untitled:" + caminho);
+			});
 
-				vscode.workspace.openTextDocument(setting).then((a) => {
-					vscode.window.showTextDocument(a, 1, false).then(e => {
-						e.edit(edit => {
-							edit.insert(new vscode.Position(0, 0), selectedText);
-						});
-					});
-				}, (error) => {
-					console.error(error);
-					debugger;
-
-				});
-			}
-			else {
-				const message = "YOUR-EXTENSION: Working folder not found, open a folder an try again";
-
-				vscode.window.showErrorMessage(message);
-			}
-
-
+		} else {
+			vscode.window.showErrorMessage('No Zowe Explorer active session')
 		}
-
-
 	});
 
-	let disposable5 = vscode.commands.registerCommand('zPic.ConvFromCSV', function () {
-		// The code you place here will be executed every time your command is executed
 
-		console.log("Converter CSV a Flat File");
-		var selectedText = seleccao(4);
+	let Symn = vscode.commands.registerCommand('zPic.Symnames', function () {
 
-		if (selectedText.length > 0) {
+		console.log('Symnames');
+		const symnames = Symnames();
 
-
-			if (vscode.workspace.workspaceFolders !== undefined) {
-
-				var caminho = vscode.workspace.workspaceFolders[0].uri.fsPath + "\\JCL\\CSVtoFF.jcl"
-
-				for (let i = 1; fs.existsSync(caminho); i++) {
-					caminho = vscode.workspace.workspaceFolders[0].uri.fsPath + "\\JCL\\CSVtoFF" + i + ".jcl";
-				}
-
-				var setting = vscode.Uri.parse("untitled:" + caminho);
+		abreficheiro(symnames, 'Symnames', 'jcl', 1);
+	});
 
 
-				vscode.workspace.openTextDocument(setting).then((a) => {
-					vscode.window.showTextDocument(a, 1, false).then(e => {
-						e.edit(edit => {
-							edit.insert(new vscode.Position(0, 0), selectedText);
-						});
-					});
-				}, (error) => {
-					console.error(error);
-					debugger;
+	let Symn_Local = vscode.commands.registerCommand('zPic.Symnames_Local', function (file = vscode.Uri) {
 
-				});
-			}
-			else {
-				const message = "YOUR-EXTENSION: Working folder not found, open a folder an try again";
+		console.log('Symnames');
 
-				vscode.window.showErrorMessage(message);
-			}
+		vscode.workspace.openTextDocument(file).then((document) => {
+			let texto = document.getText();
+
+			const symnames = SymnamesGerrar(texto);
+			abreficheiro(symnames, 'Symnames', 'jcl', 1);
+		});
+	});
 
 
+
+	let Symn_Central = vscode.commands.registerCommand('zPic.Symnames_Central', function (node = zowe_explorer_api.ZoweTreeNode) {
+
+
+		const Ficheiro = node.label;
+		const sessao = node.mParent.mParent.session;
+		const Biblioteca = node.mParent.label;
+
+		if (sessao) {
+			abrirFicheiroTXT(sessao, Biblioteca + "(" + Ficheiro + ")").then(texto => {
+
+				const symnames = SymnamesGerrar(texto);
+				abreficheiro(symnames, 'Symnames', 'jcl', 1);
+
+			});
+
+
+
+		} else {
+			vscode.window.showErrorMessage('No Zowe Explorer active session')
 		}
+	});
 
+
+
+
+	let Flat_CSV = vscode.commands.registerCommand('zPic.Flat_CSV', function () {
+
+		console.log('Convert flat file to CSV');
+
+		const JCL = gerrarJCL(TipoJCL.FlatToCSV);
+		abreficheiro(JCL, 'FlatFileToCSV', 'jcl');
 
 	});
 
 
-	context.subscriptions.push(disposable);
-	context.subscriptions.push(disposable2);
-	context.subscriptions.push(disposable3);
-	context.subscriptions.push(disposable4);
-	context.subscriptions.push(disposable5);
-	context.subscriptions.push(disposable6);
-};
-/////////////////////////////////////////////////////////////////////////////
-function seleccao(Tipo) {
-	console.log("Trata Selecção");
+	let Flat_CSV_Local = vscode.commands.registerCommand('zPic.Flat_CSV_Local', function (file = vscode.Uri) {
 
-	const editor = vscode.window.activeTextEditor;
+		console.log('Flat_CSV Local');
 
-	if (editor == null) {
+		vscode.workspace.openTextDocument(file).then((document) => {
+			let texto = document.getText();
+			const JCL = gerrarJCLtexto(TipoJCL.FlatToCSV, texto);
+			abreficheiro(JCL, 'FlatFileToCSV', 'jcl');
 
-		vscode.window.showErrorMessage("No editor selected.");
-		return "";
-	} else {
+		});
+	});
 
-		const selectedText = editor.document.getText(editor.selection);
 
-		if (selectedText != '') {
 
-			return FormataQuadro(selectedText.toUpperCase(), Tipo);
+	let Flat_CSV_Central = vscode.commands.registerCommand('zPic.Flat_CSV_Central', function (node = zowe_explorer_api.ZoweTreeNode) {
 
-		}
-		else {
 
-			vscode.window.showErrorMessage("No text selected.");
-			return "";
+		const Ficheiro = node.label;
+		const sessao = node.mParent.mParent.session;
+		const Biblioteca = node.mParent.label;
 
-		}
-	}
+		if (sessao) {
+			abrirFicheiroTXT(sessao, Biblioteca + "(" + Ficheiro + ")").then(texto => {
 
-}
+				const JCL = gerrarJCLtexto(TipoJCL.FlatToCSV, texto);
+				abreficheiro(JCL, 'FlatFileToCSV', 'jcl');
 
+			});
 
-/////////////////////////////////////////////////////////////////////////////
-function Recebe(Texto) {
-	console.log("Trata texto");
 
-	const args = [
-		vscode.Uri.parse("https://foobar.com"),
-		vscode.Uri.arguments
-	];
-	const encodedArgs = encodeURIComponent(
-		JSON.stringify(args)
-	);
-	console.log(encodedArgs);
-
-
-	if (Texto != '') {
-
-		return FormataQuadro(Texto.toUpperCase(), 0);
-
-	} else {
-		return '0';
-	}
-}
-
-
-
-/////////////////////////////////////////////////////////////////////////////
-function FormataQuadro(Seleccao, tipo) {
-
-	console.log("Texto seleccionado:");
-
-	const linhas = lines(Seleccao);
-	let Saida = "";
-
-	const linhasSemAsterisco = removeAsteriscos(linhas);
-
-	const linhasSocodigo = removeSeqNumCols(linhasSemAsterisco);
-	const linhasCompletas = uneLinhas(linhasSocodigo);
-
-
-	var quadro = Quadro(linhasCompletas);
-	var quadro2 = CalculaOccurs(quadro);
-
-	const Total = Somar(quadro2);
-
-	var quadroFinal = CalculaGrupo(quadro2);
-
-	switch (tipo) {
-		case 0:
-			Saida = Total;
-			break;
-		case 1:
-			const InicioHtml = `
-				<!DOCTYPE html>
-				<html>
-					<head>
-						<meta charset="UTF-8">
-						<meta name="viewport" content="width=device-width, initial-scale=1.0">
-						<title>Pic Calculator</title>
-						<style>
-							.header {
-							  position: sticky;
-							  display: block;
-							  left: 0;
-							  top: 0;
-							  text-align:center;
-							  background-color: var(--vscode-list-hoverBackground);
-							  padding: 10px;
-							  margin: 10px;
-							  border-radius: 5px;
-							}
-							.footer {
-							  display: block;
-							  position: sticky;
-							  left: 0;
-							  bottom: 0;
-							  background-color: var(--vscode-list-hoverBackground);
-							  padding: 10px;
-							  margin: 10px;
-							  border-radius: 5px;
-							}
-							.tabela {
-								width:100%;
-							}
-							.cela {
-								background-color: var(--vscode-list-hoverBackground);
-								padding: 10px;
-								margin: 10px;
-							 }
-							.numero {
-								width:10%;
-								text-align: center;
-							}
-							.descricao {
-								width:50%;
-							}
-							.tamanho {
-								width: 10%;
-								text-align: right;
-							}
-							.occurs {
-								width: 10%;
-								text-align: right;
-							}
-							.inicio {
-								width: 10%;
-								text-align: right;
-							}
-							.fim {
-								width: 10%;
-								text-align: right;
-							}
-							.cabecalho {
-								background-color: var(--vscode-sideBar.background);
-								position: sticky;
-								text-align: center;
-							}
-						</style>
-					</head>
-					<body>
-
-						<div class="grid-container">
-						  <div class="header"><h2>Pic Calculator</h2></div>
-						  <div class="body">
-						  	<table class="tabela">
-								  <tr>
-									<th class="monaco-icon-label-container cela numero cabecalho"><b>#</b></th>
-									<th class="monaco-icon-label-container cela descricao cabecalho"><b>Description</b></th>
-									<th class="monaco-icon-label-container cela tamanho cabecalho"><b>Length</b></th>
-									<th class="monaco-icon-label-container cela tamanho cabecalho"><b>Occurs</b></th>
-									<th class="monaco-icon-label-container cela inicio cabecalho"><b>Beginning</b></th>
-									<th class="monaco-icon-label-container cela fim cabecalho"><b>End</b></th>
-								  </tr>
-								  <tr>`;
-			const fimHtml1 = `
-		            </table>
-				</div>
-				  <div class="footer"><h3>Total: `;
-			const fimHtml2 = `</h3></div>
-				</div>
-			</body>
-		</html>`;
-
-			const registo1 = `
-				<tr>
-				  <td class="cela numero">`;
-			const registo2 = `</td>
-				<td class="cela descricao">`;
-			const registo3 = `</td>
-				<td class="cela tamanho">`;
-			const registo4 = `</td>
-				<td class="cela occurs">`;
-			const registo5 = `</td>
-				<td class="cela inicio">`;
-			const registo6 = `</td>
-				<td class="cela fim">`;
-			const registo7 = `</td>
-				</tr>`;
-
-			Saida = InicioHtml;
-
-			for (let i = 0; i < quadroFinal.length; i++) {
-
-
-				if (
-					quadroFinal[i][qOcorrencias] == 1) {
-					quadroFinal[i][qOcorrencias] = '';
-				} else {
-					quadroFinal[i][qOcorrencias] = quadroFinal[i][qOcorrencias] + 'X';
-				}
-				Saida = Saida
-					+ registo1
-					+ quadroFinal[i][qNivel]
-					+ registo2
-					+ quadroFinal[i][qCampo]
-					+ registo3
-					+ quadroFinal[i][qRec]
-					+ registo4
-					+ quadroFinal[i][qOcorrencias]
-					+ registo5
-					+ quadroFinal[i][qInicio]
-					+ registo6
-					+ quadroFinal[i][qFim]
-					+ registo7;
-
-			}
-
-			Saida = Saida + fimHtml1 + Total + fimHtml2;
-			break;
-		case 2:
-
-			const quadroSymnames = FazSymnaes(quadro);
-
-			Saida = "//SYMNAMES DD *"
-			for (let i = 0; i < quadroSymnames.length; i++) {
-				Saida = Saida + '\n' + quadroSymnames[i][1] + ',' + quadroSymnames[i][3] + ',' + quadroSymnames[i][6] + ',' + quadroSymnames[i][5];
-			}
-			break;
-
-		case 3:
-			let jobIn = `//` + NomeJCL + ` JOB ,'Flat File to CSV',MSGCLASS=` + MsgClass + `,CLASS=` + Class + `,
-//         NOTIFY=&SYSUID
-//         SET FICHIN=` + InputFile + `
-//         SET FICHOUT=` + OutputFile + `
-//         SET MAXLREC=`;
-			let jobIn2 = `
-//**********************************************************************
-//*        IDCAMS: DELETE FILES
-//**********************************************************************
-//STPDEL01 EXEC PGM=IDCAMS
-//SYSPRINT DD SYSOUT=*
-//SYSIN    DD *
-           DELETE ` + OutputFile + ` PURGE
-           SET MAXCC = 0
-//*
-//**********************************************************************
-//*    CONVERT FLAT FILE TO EXCEL (CSV)                                *
-//**********************************************************************
-//*        ------------------------------------------------------------
-//FFTOCSV  EXEC PGM=SORT,COND=(0,NE)
-//SYSPRINT DD SYSOUT=*
-//SYSOUT   DD SYSOUT=*
-//SORTIN   DD DISP=SHR,DSN=&FICHIN
-//*
-//SORTOUT  DD DSN=&FICHOUT,
-//            DISP=(NEW,CATLG),SPACE=(TRK,(5,5),RLSE),
-//            DCB=(RECFM=FB,LRECL=&MAXLREC)
-`
-			let jobMid = `
-//SYSIN    DD *
-  OPTION   COPY
-  INREC    FIELDS=(`
-			let jobFim = `)
-//*`;
-
-			const quadroToCSV = FazSymnaes(quadro);
-			let Symnames = '';
-			let TotalCSV = -1;
-
-			if (SysnamesTitle) {
-				Symnames = Symnames + "//SYMNAMES DD *";
-			}
-
-			for (let i = 0; i < quadroToCSV.length; i++) {
-				Symnames = Symnames + '\n' + quadroToCSV[i][1] + ',' + quadroToCSV[i][3] + ',' + quadroToCSV[i][6] + ',' + quadroToCSV[i][5];
-			}
-
-			let Inrec = '';
-
-			for (let i = 1; i < quadroToCSV.length; i++) {
-
-				if (i < quadroToCSV.length - 1) {
-
-					if (quadroToCSV[i][3] != quadroToCSV[i + 1][3]) {
-						TotalCSV = TotalCSV + parseInt(quadroToCSV[i][8]) + 1;
-						Inrec = Inrec + quadroToCSV[i][1];
-						if (quadroToCSV[i][5] == 'PD' || quadroToCSV[i][5] == 'BI' || quadroToCSV[i][5] == 'ZD') {
-
-							let tamanho = parseInt(quadroToCSV[i][8]);
-							let Decimais = parseInt(quadroToCSV[i][7]);
-							let formatado = 'S'
-
-							for (let i = 0; i < tamanho - Decimais - 1; i++) {
-								formatado = formatado + 'I'
-							}
-
-							formatado = formatado + 'T';
-
-							if (Decimais > 0) {
-								formatado = formatado + ',';
-								for (let i = 0; i < Decimais; i++) {
-									formatado = formatado + 'T'
-									TotalCSV = TotalCSV + 1;
-								}
-							}
-							Inrec = Inrec + ',EDIT=(' + formatado + '),SIGNS=(,-)';
-							TotalCSV = TotalCSV + 1;
-						}
-
-						if (i < quadroToCSV.length - 1) {
-							Inrec = Inrec + ",C';',\n                   ";
-						}
-					}
-				} else {
-
-					Inrec = Inrec + quadroToCSV[i][1];
-					TotalCSV = TotalCSV + parseInt(quadroToCSV[i][8]) + 1;
-					if (quadroToCSV[i][5] == 'PD' || quadroToCSV[i][5] == 'BI') {
-						let tamanho = parseInt(quadroToCSV[i][8]);;
-						Inrec = Inrec + ',' + quadroToCSV[i][5] + ',TO=ZD,LENGTH(' + tamanho + ')'
-					}
-				}
-			}
-
-			let job = jobIn + TotalCSV + jobIn2 + Symnames + jobMid + Inrec + jobFim;
-
-
-			Saida = job;
-			break;
-
-		case 4:
-
-			let job2In = `//` + NomeJCL + ` JOB ,'CSV to Flat File',MSGCLASS=` + MsgClass + `,CLASS=` + Class + `,
-//         NOTIFY=&SYSUID
-//         SET FICHIN=` + InputFile + `
-//         SET FICHOUT=` + OutputFile + `
-//         SET MAXLREC=`;
-			let job2In2 = `
-//**********************************************************************
-//*    CONVERT EXCEL (CSV) TO FLAT FILE                                *
-//**********************************************************************
-//**********************************************************************
-//*        IDCAMS: DELETE FILES
-//**********************************************************************
-//STPDEL01 EXEC PGM=IDCAMS
-//SYSPRINT DD SYSOUT=*
-//SYSIN    DD *
-           DELETE ` + OutputFile + ` PURGE
-           SET MAXCC = 0
-//*
-//*        ------------------------------------------------------------
-//FFTOCSV  EXEC PGM=SORT,COND=(0,NE)
-//SYSPRINT DD SYSOUT=*
-//SYSOUT   DD SYSOUT=*
-//SORTIN   DD DISP=SHR,DSN=&FICHIN
-//*
-//SORTOUT  DD DSN=&TEMP,
-//            DISP=(NEW,CATLG),SPACE=(TRK,(5,5),RLSE)
-//SYSIN    DD *
-  OPTION   COPY
-  OUTFIL   PARSE=(`
-			let job2Fim = `),
-           BUILD=(`
-			let job2Fim2 = `)
-//*
-//STEM0402 EXEC PROC=PSORT,COND=(0,NE)
-//SYSPRINT DD SYSOUT=*
-//SORTIN   DD DISP=SHR,DSN=&TEMP
-//SORTOUT  DD DSN=&FICHOUT,
-//            DISP=(NEW,CATLG),SPACE=(TRK,(5,5),RLSE),
-//            DCB=(RECFM=FB,LRECL=&MAXLREC)
-`
-			let job2Fim3 = `//SYSIN    DD *
-  SORT     FIELDS=COPY
-  OUTREC   FIELDS=(`
-			let job2Fim4 = `)
-//*`
-			let Outfil = '';
-			let Build = '';
-			let PosIn = 1;
-			let PosOut = 0;
-			let forOut = "";
-
-			let Outrec = '';
-			const quadroFromCSV = FazSymnaes(quadro);
-
-			let Symnames3 = "//SYMNAMES DD *\n";
-
-			for (let i = 1; i < quadroFromCSV.length; i++) {
-
-				let tamanho = 0;
-
-				if (i < quadroFromCSV.length - 1) {
-					if (quadroFromCSV[i][3] != quadroFromCSV[i + 1][3]) {
-						if (quadroFromCSV[i][5] == "CH" || quadroFromCSV[i][5] == "ZD") {
-							forOut = quadroFromCSV[i][5];
-							tamanho = parseInt(quadroFromCSV[i][6]);
-							Outrec = Outrec + quadroFromCSV[i][1];
-						} else {
-							forOut = "ZD";
-							tamanho = parseInt(quadroFromCSV[i][6]);
-							Outrec = Outrec + quadroFromCSV[i][1] + ',ZD,TO=' + quadroFromCSV[i][5] + ',LENGTH(' + quadroFromCSV[i][6] + ')';
-						}
-
-						PosOut = PosOut + tamanho;
-						Build = Build + "%" + i;
-						Outfil = Outfil + "%" + i + "=(ENDBEFR=C';',FIXLEN=" + tamanho + ")"
-						Symnames3 = Symnames3 + quadroFromCSV[i][1] + ',' + PosIn + ',' + tamanho + ',' + forOut + '\n';
-
-						if (parseInt(quadroFromCSV[i][7]) > 0) {
-							Build = Build + ",UFF,M11,LENGTH=" + tamanho;
-						}
-
-						Build = Build + ',\n                  ';
-						Outfil = Outfil + ',\n                  ';
-						Outrec = Outrec + ',\n                   ';
-						PosIn = PosOut + 1;
-
-
-					}
-				} else {
-					if (quadroFromCSV[i][5] == "CH" || quadroFromCSV[i][5] == "ZD") {
-						forOut = quadroFromCSV[i][5];
-						tamanho = quadroFromCSV[i][6];
-						Outrec = Outrec + quadroFromCSV[i][1];
-					} else {
-						forOut = "ZD";
-						tamanho = (parseInt(quadroFromCSV[i][4]) - parseInt(quadroFromCSV[i][3])) * 2 + 1;
-						Outrec = Outrec + quadroFromCSV[i][1] + ',ZD,TO=' + quadroFromCSV[i][5] + ',LENGTH(' + quadroFromCSV[i][6] + ')';
-					}
-
-					PosOut = PosOut + tamanho;
-					Build = Build + "%" + i;
-					Outfil = Outfil + "%" + i + "=(ENDBEFR=C';',FIXLEN=" + tamanho + ")"
-					Symnames3 = Symnames3 + quadroFromCSV[i][1] + ',' + PosIn + ',' + tamanho + ',' + forOut + '\n';
-
-					if (parseInt(quadroFromCSV[i][7]) > 0) {
-						Build = Build + ",UFF,M11,LENGTH=" + tamanho;
-					}
-				}
-
-
-
-
-			}
-
-			Saida = job2In + Total + job2In2 + Outfil + job2Fim + Build + job2Fim2 + Symnames3 + job2Fim3 + Outrec + job2Fim4;
-
-			break;
-	}
-
-	return Saida;
-
-}
-/////////////////////////////////////////////////////////////////////////////
-function FazSymnaes(quadro) {
-	console.log("Faz Symnames");
-
-	let inicio = 1;
-	let formatoJCL = '';
-	let fim = quadro[0][qRecMultiplicado];
-	let i = 0;
-	let indiceX = '';
-	let ind = 0;
-	Lista = [];
-
-	let quadroFinal = [];
-	let ocorrencias = 1;
-	i = 0;
-	inicio = 1;
-	fim = 0;
-	Lista = [];
-	let ListaOccur = [];
-	let TrataGrupoOccurs = false;
-
-
-	do {
-
-
-		switch (quadro[i][qFormato]) {
-			case 'Alfanumerico':
-			case 'Formatado':
-				formatoJCL = 'CH';
-				break;
-			case 'Numerico':
-				formatoJCL = 'ZD';
-				break;
-			case 'COMP-3':
-				formatoJCL = 'PD';
-				break;
-			case "COMP":
-			case "COMP-4":
-			case "COMP-5":
-			case "BINARY":
-				formatoJCL = 'BI';
-				break;
-			default:
-				formatoJCL = 'CH'
-		}
-
-		if (quadro[i][qOcorrencias] > 1 && quadro[i][qPic] != "Grupo") {
-			TrataGrupoOccurs = true;
-		}
-
-		if (ListaOccur.length == 0) {
-			inicio = quadro[i][qInicio];
-
-			if (TrataGrupoOccurs) {
-				fim = inicio + quadro[i][qRec] - 1;
-			} else {
-				fim = quadro[i][qFim];
-			}
 
 		} else {
-			if (quadro[i][qInicio] != quadro[i - 1][qInicio]) {
-				inicio = quadroFinal[quadroFinal.length - 1][4] + 1;
-			}
-			fim = inicio + quadro[i][qRec] - 1;
+			vscode.window.showErrorMessage('No Zowe Explorer active session')
 		}
+	});
 
 
-		indiceX = encontraIndice(quadro, i);
-
-		quadroFinal.push([quadro[i][qNivel], quadro[i][qCampo].replace('-', '_') + indiceX, ocorrencias, inicio, fim, formatoJCL, quadro[i][qRec], quadro[i][qCasasDecimais], quadro[i][qTamanhoOrigem]]);
 
 
-		if (quadro[i][qPic] != "Grupo") {
-			for (let j = 1; j < quadro[i][qOcorrencias]; j++) {
-				inicio = inicio + quadro[i][qRec];
-				fim = inicio + quadro[i][qRec] - 1;
-				indiceX = encontraIndice(quadro, i);
-				quadroFinal.push([quadro[i][qNivel], quadro[i][qCampo].replace('-', '_') + indiceX, ocorrencias, inicio, fim, formatoJCL, quadro[i][qRec], quadro[i][qCasasDecimais], quadro[i][qTamanhoOrigem]]);
-				console.log(quadroFinal[quadroFinal.length - 1]);
-				TrataGrupoOccurs = false;
-			}
-		} else {
-			if (quadro[i][qOcorrencias] > 1) {
-				ListaOccur.push([i, quadro[i][qOcorrencias]])
-			}
-		}
+	let CSV_Flat = vscode.commands.registerCommand('zPic.CSV_Flat', function () {
 
-		if (ListaOccur.length > 0) {
-			if (ListaOccur[ListaOccur.length - 1][1] <= 1 && quadroFinal[quadroFinal.length - 1][4] == quadro[ind][qFim]) {
-				ListaOccur.pop();
-				ind = 0;
-			} else {
-				ind = ListaOccur[ListaOccur.length - 1][0];
-				if (quadro[i + 1][qNivel] <= quadro[ind][qNivel]) {
-					ListaOccur[ListaOccur.length - 1][1] = --ListaOccur[ListaOccur.length - 1][1];
-					quadro[ind][qInicio] = quadro[i][qFim] + 1;
-					i = ind;
-				}
-			}
-		}
+		console.log('Convert CSV to flat file');
+		const JCL = gerrarJCL(TipoJCL.CSVToFlat);
+		abreficheiro(JCL, 'CSVToFlatFile', 'jcl');
 
-		++i;
+	});
 
-	} while (i < quadro.length);
+	let CSV_Flat_Local = vscode.commands.registerCommand('zPic.CSV_Flat_Local', function (file = vscode.Uri) {
 
-	return quadroFinal;
+		console.log('CSV_Flat Local');
 
-}
-/////////////////////////////////////////////////////////////////////////////
-function encontraIndice(quadro, i) {
+		vscode.workspace.openTextDocument(file).then((document) => {
+			let texto = document.getText();
 
-	let indiceN = -1;
-	let indiceX = '';
-	const texto = quadro[i][qCampo];
-
-	if (Lista.length != 0) {
-
-		indiceN = Lista.findIndex((elem) => elem.includes(texto));
-	}
+			const JCL = gerrarJCLtexto(TipoJCL.CSVToFlat, texto);
+			abreficheiro(JCL, 'CSVToFlatFile', 'jcl');
+		});
+	});
 
 
-	if (indiceN == -1) {
-		Lista.push([texto, 0]);
-		indiceX = "";
-	} else {
-		++Lista[indiceN][1];
-		indiceX = "_" + Lista[indiceN][1];
-	}
-	return indiceX;
-}
-/////////////////////////////////////////////////////////////////////////////
-function lines(text) {
-	console.log("calcula linhas");
-	return text.split('\n');
-}
-
-/////////////////////////////////////////////////////////////////////////////
-function removeAsteriscos(text) {
-	console.log("Remove Asteriscos");
-
-	var t = "";
-	var text2 = [];
-
-	if (text.length > 1) {
-
-		if (75 - text[0].length > 6) {
-
-			if (text[0].includes("*") == false) {
-
-				text2.push(text[0]);
-
-			}
-		} else {
-			const temp = text[0].trim().split(' ');
-			if (temp[0] > '00' && temp[0] < '88') {
-
-				text2.push(text[0]);
-
-			} else {
-				vscode.window.showWarningMessage("To calculate the size of the first selected line, a level number is nedded")
-			}
-		}
-
-		for (let i = 1; i < text.length; i++) {
-
-			t = text[i].charAt(6);
-			if (t == ' ') {
-
-				text2.push(text[i]);
-
-			}
-		}
-	} else {
-		text2 = text;
-	}
-	return text2;
-}
-
-/////////////////////////////////////////////////////////////////////////////
-function removeSeqNumCols(text) {
-	console.log("Remove numeros sequenciais");
-
-	var text2 = [];
-	var t = '';
-	var t2 = '';
-
-	if (text[0].length > 75) {
-
-		var tamanho = text[0].length - 75;
-		t = text[0].substring(tamanho, text[0].length - 8 - tamanho);
-		t2 = t.trim();
+	let CSV_Flat_Central = vscode.commands.registerCommand('zPic.CSV_Flat_Central', function (node = zowe_explorer_api.ZoweTreeNode) {
 
 
-	} else {
-		if (text[0].length > 65) {
+		const Ficheiro = node.label;
+		const sessao = node.mParent.mParent.session;
+		const Biblioteca = node.mParent.label;
 
-			t = text[0].substring(0, text[0].length - 9);
-			t2 = t.trim();
+		if (sessao) {
+			abrirFicheiroTXT(sessao, Biblioteca + "(" + Ficheiro + ")").then(texto => {
+
+				const JCL = gerrarJCLtexto(TipoJCL.CSVToFlat, texto);
+				abreficheiro(JCL, 'CSVToFlatFile', 'jcl');
+
+			});
+
+
 
 		} else {
-
-			t2 = text[0].trim();
+			vscode.window.showErrorMessage('No Zowe Explorer active session')
 		}
-	}
+	});
 
 
-	text2.push(t2);
 
-	for (let i = 1; i < text.length; i++) {
 
-		t = text[i].substring(7, 72);
-		text2.push(t.trim());
-
-	}
-
-	return text2;
+	context.subscriptions.push(Lista);
+	context.subscriptions.push(Symn);
+	context.subscriptions.push(Flat_CSV);
+	context.subscriptions.push(CSV_Flat);
+	context.subscriptions.push(Total_Local);
+	context.subscriptions.push(Lista_Local);
+	context.subscriptions.push(Flat_CSV_Local);
+	context.subscriptions.push(CSV_Flat_Local);
+	context.subscriptions.push(Symn_Local);
+	context.subscriptions.push(Total_Central);
+	context.subscriptions.push(Lista_Central);
+	context.subscriptions.push(Symn_Central);
+	context.subscriptions.push(Flat_CSV_Central);
+	context.subscriptions.push(CSV_Flat_Central);
 }
-
-
-/////////////////////////////////////////////////////////////////////////////
-function uneLinhas(text) {
-	console.log("unir linhas separadas");
-
-	var text2 = [];
-	var text3 = [];
-	var j = 0;
-
-	text2[j] = '';
-	for (let i = 0; i < text.length; i++) {
-
-		text2[j] = text2[j] + text[i];
-
-		if (text[i].charAt(text[i].length - 1) == '.') {
-			++j;
-			text2[j] = '';
-		} else {
-			text2[j] = text2[j] + ' ';
-		}
-
-	}
-	if (text2[text2.length - 1] == '') {
-		text2.pop();
-	}
-
-	for (let i = 0; i < text2.length; i++) {
-		if (text2[i].charAt(text2[i].length - 1) == ".") {
-			text3[i] = text2[i].substring(0, text2[i].length - 1);
-		}
-		else {
-			text3[i] = text2[i];
-		}
-	}
-
-	return text3;
-}
-/////////////////////////////////////////////////////////////////////////////
-function Quadro(text) {
-
-	console.log("Formatar Quadro");
-
-	var text2 = [];
-	let quadro = [];
-	const Nivel = 0;
-	const Nome = 1;
-	let Definicao = 3;
-	let occurs = 0;
-	let tip = '';
-	let formato = '';
-	let tamanho = 0;
-	let tamanhoOrigem = 0;
-	let CasasDecimais = 0;
-
-	let redefines = false;
-
-	for (let i = 0; i < text.length; i++) {
-
-		text2[i] = text[i].split(/\s+/);
-
-		console.log(text2[i][0] + "-" + text2[i][1] + "-" + text2[i][2] + "-" + text2[i][3] + "-" + text2[i][4]
-			+ "-" + text2[i][5] + "-" + text2[i][6] + "-" + text2[i][7]);
-
-
-		occurs = 1;
-		formato = "Numerico";
-		redefines = false;
-		CasasDecimais = 0;
-
-		if (text2[i].length > Definicao) {
-			if (text2[i][Definicao + 1] == "USAGE") {
-				formato = text2[i][Definicao + 2];
-			} else {
-				formato = text2[i][Definicao + 1];
-			}
-		}
-
-		for (let j = 0; j < text2[i].length; j++) {
-
-
-			if (text2[i][j] == "OCCURS") {
-				occurs = text2[i][j + 1];
-			}
-
-			if (text2[i][j] == "REDEFINES") {
-				redefines = true;
-			}
-
-			if (text2[i][j] == "PIC") {
-				Definicao = j + 1;
-			}
-		}
-
-		if (text2[i][0] > "00" && text2[i][0] < "88") {
-			if (text2[i][Definicao] == null) {
-
-
-				quadro.push([redefines, text2[i][Nivel], text2[i][Nome], 0, "Grupo", , 0, 1, 0, 0, 0, 0, 0]);
-
-			} else {
-				if (text2[i][2] == "OCCURS") {
-
-
-					quadro.push([redefines, text2[i][Nivel], text2[i][Nome], 0, "Grupo", , 0, occurs, 0, 0, 0, 0, 0]);
-
-				} else {
-
-					switch (text2[i][Definicao].charAt(0)) {
-						case 'X':
-							if (text2[i][Definicao].length > 1) {
-
-								tip = "Alfanumerico";
-
-							} else {
-
-								tip = "Formatado";
-
-							}
-							break;
-						case 'S':
-						case '9':
-							if ((text2[i][Definicao].length > 3 &&
-								text2[i][Definicao].charAt(0) == "S") ||
-								(text2[i][Definicao].charAt(0) == "9" &&
-									text2[i][Definicao].charAt(1) == "(")) {
-								switch (formato) {
-									case "COMP":
-										tip = "COMP";
-										break;
-									case "COMP-1":
-										tip = "COMP-1";
-										break;
-									case "COMP-2":
-										tip = "COMP-2";
-										break;
-									case "COMP-3":
-										tip = "COMP-3";
-										break;
-									case "COMP-4":
-										tip = "COMP-4";
-										break;
-									case "COMP-5":
-										tip = "COMP-5";
-										break;
-									case "BINARY":
-										tip = "BINARY";
-										break;
-									case "NATIONAL":
-										tip = "NATIONAL";
-										break;
-									case "DISPLAY":
-										tip = "DISPLAY";
-										break;
-									default:
-										tip = "Numerico";
-										break;
-								}
-
-							} else {
-								tip = "Formatado";
-							}
-
-							CasasDecimais = obterCasasDecimais(text2[i][Definicao]);
-
-							break;
-						default:
-							tip = "Formatado";
-							CasasDecimais = obterCasasDecimais(text2[i][Definicao]);
-							break;
-					}
-
-
-					tamanho = CalcularTamanho(text2[i][Definicao], tip);
-					tamanhoOrigem = CalcularTamanho(text2[i][Definicao], "Numerico");
-					quadro.push([redefines, text2[i][Nivel], text2[i][Nome], CasasDecimais, text2[i][Definicao], tip, tamanhoOrigem, occurs, tamanho, 0, 0]);
-
-				}
-			}
-		}
-
-	}
-
-	return quadro;
-}
-
-/////////////////////////////////////////////////////////////////////////////
-function obterCasasDecimais(definicao) {
-
-	console.log("Obter Casas Decimaiso" + definicao);
-	let tamanho = 0;
-	let def = [];
-
-	def = definicao.split(/[(,)]+/);
-
-	if (def[1] == null) {
-		tamanho = 0;
-	} else {
-		if (def[3] == null) {
-			if (def[2] == null) {
-				tamanho = def[1].length;
-			} else {
-				for (let i = 0; i < def[2].length; i++) {
-					if (def[2].charAt(i) == '9') {
-						++tamanho;
-					}
-				}
-			}
-		} else {
-			tamanho = parseInt(def[3]);
-		}
-	}
-
-
-	return tamanho
-}
-/////////////////////////////////////////////////////////////////////////////
-function CalcularTamanho(definicao, tipo) {
-
-	console.log("Calcular Tamanho " + definicao + " " + tipo);
-	let tamanho = 0;
-	let def = [];
-
-	switch (tipo) {
-		case "Alfanumerico":
-		case "Numerico":
-		case "COMP":
-		case "COMP-1":
-		case "COMP-2":
-		case "COMP-3":
-		case "COMP-4":
-		case "COMP-5":
-		case "BINARY":
-
-			def = definicao.split(/[(,)]+/);
-
-			if (!definicao.includes("(")) {
-				tamanho = definicao.length
-			} else {
-
-				if (def[1] == null) {
-
-					for (let i = 0; i < definicao.length; i++) {
-						if (definicao.charAt(i) == '9') {
-							++tamanho;
-						}
-					}
-
-				} else {
-
-					if (def[3] == null) {
-						for (let i = 0; i < def[2].length; i++) {
-							if (def[2].charAt(i) == '9') {
-								++tamanho;
-							}
-						}
-						tamanho = tamanho + parseInt(def[1]);
-					} else {
-						tamanho = parseInt(def[1]) + parseInt(def[3]);
-					}
-				}
-			}
-
-			switch (tipo) {
-				case "COMP":
-				case "COMP-4":
-				case "COMP-5":
-				case "BINARY":
-					if (tamanho <= 4) {
-						tamanho = 2;
-					} else {
-						if (tamanho <= 9) {
-							tamanho = 4;
-						} else {
-							tamanho = 8;
-						}
-					}
-					break;
-				case "COMP-1":
-					tamanho = 4;
-					break
-				case "COMP-2":
-					tamanho = 8;
-					break;
-				case "COMP-3":
-					tamanho = Math.round((tamanho + 1) / 2);
-					break;
-			}
-			break;
-
-		case "Formatado":
-		case "NATIONAL":
-		case "DISPLAY":
-
-			tamanho = definicao.length;
-			break;
-
-		default:
-			console.log("nwnhum tamanho calculado");
-			break;
-	}
-
-	return tamanho;
-}
-//////////////////////////////////////////////////////////
-function CalculaOccurs(quadro) {
-
-	console.log("Calcular Occurs");
-
-	for (let i = 0; i < quadro.length; i++) {
-		if (quadro[i][qPic] != "Grupo") {
-			quadro[i].push(quadro[i][qOcorrencias] * quadro[i][qRec])
-		}
-	}
-
-	return quadro;
-}
-//////////////////////////////////////////////////////////
-function CalculaGrupo(quadro) {
-
-	console.log("Calcular Grupo");
-
-
-	quadro[0][qInicio] = 1;
-	quadro[0][qFim] = quadro[0][qRecMultiplicado];
-
-	for (let i = 1; i < quadro.length; i++) {
-
-		if (quadro[i][qNivel] == quadro[i - 1][qNivel] || quadro[i][qNivel] == quadro[i - 1][qNivel]) {
-
-			quadro[i][qInicio] = quadro[i - 1][qInicio] + quadro[i - 1][qRecMultiplicado];
-			quadro[i][qFim] = quadro[i - 1][qFim] + quadro[i][qRecMultiplicado];
-
-		} else {
-
-			if (quadro[i][qNivel] > quadro[i - 1][qNivel]) {
-
-				quadro[i][qInicio] = quadro[i - 1][qInicio];
-				quadro[i][qFim] = quadro[i][qInicio] + quadro[i][qRecMultiplicado] - 1;
-
-			} else {
-
-				let j = 0;
-
-				for (j = i - 1; j >= 0 && quadro[i][qNivel] != quadro[j][qNivel]; j--) {
-				}
-
-				if (quadro[i][qNivel] <= quadro[j][qNivel]) {
-					quadro[i][qInicio] = quadro[j][qFim] + 1;
-				}
-				quadro[i][qFim] = quadro[i][qInicio] + quadro[i][qRecMultiplicado] - 1;
-
-			}
-
-		}
-
-	}
-
-
-	return quadro;
-}
-//////////////////////////////////////////////////////////
-function Somar(quadro) {
-
-	console.log("Somar");
-
-	let Total = quadro[0][qRecMultiplicado];
-	let i = 0;
-	let j = 0;
-	let k = 0;
-	let Nivel = quadro[i][qNivel];
-	let quadroTemp = [];
-
-
-
-	for (i = 1; i < quadro.length; i++) {
-
-		if (quadro[i][qNivel] > Nivel && k < i) {
-
-			k = i;
-			j = 0;
-			quadroTemp = [];
-
-			while (k < quadro.length && quadro[k][qNivel] > Nivel) {
-
-				quadroTemp[j] = quadro[k];
-				++k;
-				++j;
-
-			}
-
-			quadro[i - 1][qRec] = Somar(quadroTemp);
-			quadro[i - 1][qRecMultiplicado] = quadro[i - 1][qRec] * quadro[i - 1][qOcorrencias];
-			if (quadro[i - 1][qRedefines] == false) {
-				Total = Total + quadro[i - 1][qRecMultiplicado];
-			}
-
-		}
-
-
-		if (Nivel == quadro[i][qNivel]) {
-
-			Total = Total + quadro[i][qRecMultiplicado];
-
-		}
-
-	}
-
-
-
-	return Total;
-
-}
-
-
 
 // This method is called when your extension is deactivated
 function deactivate() { }
@@ -1290,4 +269,554 @@ function deactivate() { }
 module.exports = {
 	activate,
 	deactivate
+}
+function calculaLista() {
+	const editor = vscode.window.activeTextEditor;
+	const seleção = editor.selection;
+	const inicio = seleção.start.character;
+
+	if (seleção.end.isAfter(seleção.start)) {
+		let texto = editor.document.getText(seleção);
+		texto = new Array(inicio + 1).join(' ') + texto;
+		trataLista(texto);
+
+	}
+
+}
+
+async function LerNomeFicheiros(PlaceHolder = '', Title = '', Value = '') {
+
+	let resultado = '';
+	await vscode.window.showInputBox({
+		placeHolder: PlaceHolder,
+		title: Title,
+		value: Value,
+		validateInput: text => {
+			return validaInput(text);
+		}
+	}).then(ficheiro => {
+		resultado = ficheiro.toUpperCase();
+	});
+
+	return resultado;
+
+	function validaInput(texto = '') {
+
+		const separado = texto.split('.');
+		const specialChars = /[^a-zA-Z0-9. ]/g;
+
+		if (texto.match(specialChars)) {
+			return "Only characters A-Z, a-z, 0-9 and '.' are allowed!";
+		}
+
+		for (let i = 0; i < separado.length; i++) {
+			if (separado[i].length > 8) {
+				return 'Invalid segment length. Max segment length 8 characters!';
+			}
+		}
+	}
+}
+
+
+function trataLista(texto = '') {
+	const lista = CalculaLista(texto.toUpperCase());
+	const listaCopy = lista.obterLista(lista.Copybook, 0);
+	const webview = FormataWebview(listaCopy, lista.Tamanho);
+
+	const painel = vscode.window.createWebviewPanel('zPic', 'Pic Calculator', vscode.ViewColumn.Two, {
+		enableFindWidget: true,
+	})
+
+	painel.webview.html = webview;
+}
+
+function Symnames() {
+
+	const editor = vscode.window.activeTextEditor;
+	const seleção = editor.selection;
+	const inicio = seleção.start.character;
+
+	if (seleção.end.isAfter(seleção.start)) {
+		let texto = editor.document.getText(seleção);
+		texto = new Array(inicio + 1).join(' ') + texto;
+		let copybook = new zPic.Copybook(texto.toUpperCase());
+		const symNames = copybook.obterSymnames();
+		console.log(symNames);
+		return symNames;
+	}
+}
+
+
+function SymnamesGerrar(texto) {
+
+	let copybook = new zPic.Copybook(texto.toUpperCase());
+	const symNames = copybook.obterSymnames();
+	console.log(symNames);
+	return symNames;
+}
+
+
+function calculaSelecção(seleção) {
+
+	let total = 0;
+
+	if (decoration) {
+		decoration.dispose();
+	}
+	const editor = vscode.window.activeTextEditor;
+	const range1 = seleção.start;
+	const range2 = seleção.end;
+	const inicio = seleção.start.character;
+
+	if (seleção.end.isAfter(seleção.start)) {
+		let texto = editor.document.getText(seleção);
+		texto = new Array(inicio + 1).join(' ') + texto;
+		total = CalculaLREC(texto);
+	}
+
+
+	if (total > 0) {
+		decoration = vscode.window.createTextEditorDecorationType({
+			isWholeLine: true,
+			textDecoration: 'underline solid green 1px',
+			after: {
+				contentText: `zPic Total: ${total}`,
+				border: '15px',
+				backgroundColor: 'var(--vscode-button-background)',
+				color: 'var(--vscode-button-foreground)',
+				margin: '15px',
+				contentIconPath: 'zPic.png'
+			}
+		});
+
+		const ranges = [];
+		ranges.push(
+			new vscode.Range(range1, range2),
+		);
+		vscode.window.activeTextEditor.setDecorations(decoration, ranges);
+	}
+
+	return total;
+}
+
+
+function CalculaLREC(Texto) {
+	console.log("trata Texto " + Texto)
+	let copybook = new zPic.Copybook(Texto.toUpperCase());
+
+	return copybook.Tamanho;
+
+}
+
+function CalculaLista(Texto) {
+	console.log("trata Texto " + Texto)
+	let copybook = new zPic.Copybook(Texto.toUpperCase());
+
+	return copybook;
+
+}
+
+function FormataWebview(lista, Total = 0) {
+
+	let ListaHTML = '';
+
+	for (let i = 0; i < lista.length; i++) {
+
+		const nivel = lista[i].Nivel;
+		const variavel = lista[i].Nome.split('-').join('_');
+		const tamanho = lista[i].Tamanho;
+		let occurs = '';
+		if (lista[i].Occurs > 1) {
+			occurs = lista[i].Occurs;
+		}
+		const inicio = lista[i].Inicio;
+		const fim = lista[i].Fim;
+
+		const linha = `
+		<tr>
+			<td class="Level">${nivel}</td>
+			<td class="Description">${variavel}</td>
+			<td class="Length">${tamanho}</td>
+			<td class="Occurs">${occurs}</td>
+			<td class="Beginning">${inicio}</td>
+			<td class="End">${fim}</td>
+		</tr>
+`;
+		ListaHTML += linha;
+	}
+
+
+	const html = `
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset='utf-8'>
+    <meta http-equiv='X-UA-Compatible' content='IE=edge'>
+    <title>zPic</title>
+    <meta name='viewport' content='width=device-width, initial-scale=1'>
+    <!-- <link rel='stylesheet' type='text/css' media='screen' href='main.css'>
+    <script src='main.js'></script> -->
+    <style>
+        tr:nth-child(even) {
+            background-color: var(--vscode-editorActionList-focusBackground);
+        }
+
+        th, h1 {
+            text-align: center;
+        }
+
+		tr {
+			padding: 3px;
+		}
+
+		table {
+
+            width: 100%;
+		}
+
+        .Level {
+            text-align: center;
+            width: 10%;
+        }
+
+        .Description {
+            width: 50%;
+        }
+
+        .Occurs,
+        .Beginning,
+        .End,
+        .Length {
+            text-align: right;
+            width: 10%;
+        }
+
+		.total {
+            text-align: right;
+  			font-weight: bold;
+		}
+    </style>
+</head>
+
+<body>
+    <h1>zPic - Variable List</h1>
+    <div>
+        <table>
+            <tr>
+                <th>#</th>
+                <th>Description</th>
+                <th>Length</th>
+                <th>Occurs</th>
+                <th>Beginning</th>
+                <th>End</th>
+            </tr>
+${ListaHTML}
+			<tr>
+				<td COLSPAN="6" class="total">Total: ${Total}</td>
+			</tr>
+        </table>
+    </div>
+</body>
+
+</html>
+	`;
+
+	return html;
+}
+
+
+function abreficheiro(texto, Ficheiro = '', extensão = '', tipo = 0) {
+
+	const ficheiros = vscode.workspace.textDocuments;
+	if (vscode.workspace.workspaceFolders !== undefined) {
+
+
+		var nomeficheiro = vscode.workspace.workspaceFolders[0].uri.fsPath + "\\" + Ficheiro + '.' + extensão;
+
+		let i = 0;
+		let encontrou = true;
+
+		while (encontrou == true) {
+			encontrou = false;
+			for (let j = 0; j < ficheiros.length; j++) {
+				if (ficheiros[j].fileName == nomeficheiro) {
+					encontrou = true;
+				}
+				if (encontrou) {
+					++i;
+					nomeficheiro = vscode.workspace.workspaceFolders[0].uri.fsPath + "\\" + Ficheiro + "_v" + i + '.' + extensão;
+				}
+			}
+
+		}
+
+		var setting = vscode.Uri.parse("untitled:" + nomeficheiro);
+
+		if (tipo == 0) {
+			LerNomeFicheiros(InputFile, 'Input file', InputFile).then(inputFile => {
+				InputFile = inputFile;
+				LerNomeFicheiros(OutputFile, 'Output file', OutputFile).then(outputFile => {
+					OutputFile = outputFile;
+
+					texto = texto.split('<InputFile>').join(InputFile);
+					texto = texto.split('<OutputFile>').join(OutputFile);
+
+					ficheiro();
+				});
+			})
+		} else {
+			ficheiro();
+		}
+
+		function ficheiro() {
+			vscode.workspace.openTextDocument(setting).then((a) => {
+				vscode.window.showTextDocument(a, 1, false).then(e => {
+					e.edit(edit => {
+						edit.insert(new vscode.Position(0, 0), texto);
+					});
+
+				})
+			}, (error) => {
+				console.error(error);
+				debugger;
+
+			});
+		}
+	}
+}
+
+
+const TipoJCL = {
+	FlatToCSV: 0,
+	CSVToFlat: 1
+}
+
+function gerrarJCL(Tipo = 0) {
+
+
+	const editor = vscode.window.activeTextEditor;
+	const seleção = editor.selection;
+	const inicio = seleção.start.character;
+
+	if (seleção.end.isAfter(seleção.start)) {
+		let texto = editor.document.getText(seleção);
+		texto = new Array(inicio + 1).join(' ') + texto.toUpperCase();
+		const jcl = gerrarJCLtexto(Tipo, texto);
+
+		return jcl
+
+	}
+}
+
+function gerrarJCLtexto(Tipo = 0, texto = '') {
+
+
+	let symNames2 = '';
+
+	let copy = new zPic.Copybook(texto.toUpperCase());
+
+	const symNames = copy.obterSymnames(Tipo);
+
+	const lrec = copy.Tamanho;
+	let CSVlrec = 0;
+
+
+
+	const jobname = vscode.workspace.getConfiguration('zPic').get('Job.Card.JobName');
+	const Class = vscode.workspace.getConfiguration('zPic').get('Job.Card.Class');
+	const MsgClass = vscode.workspace.getConfiguration('zPic').get('Job.Card.MsgClass');
+	const separadorCSV = vscode.workspace.getConfiguration('zPic').get('CSV.Delimiters');
+	const decimal = vscode.workspace.getConfiguration('zPic').get('CSV.DecimalPlaceDelimiters');
+
+	let listaInrec = '';
+	let listaCSVtoFlat = '';
+	let listaParse = '';
+	let listaBuild = '';
+	ListaCampos();
+
+	const resultado = obterTemplate();
+
+	function obterTemplate() {
+
+
+		let resultado = '';
+
+		if (Tipo == TipoJCL.FlatToCSV) {
+
+			resultado = `//${jobname} JOB ,'Flat File to CSV',MSGCLASS=${MsgClass},CLASS=${Class}
+//**********************************************************************
+//*        IDCAMS: DELETE FILES                                        *
+//**********************************************************************
+//STPDEL01 EXEC PGM=IDCAMS
+//SYSPRINT DD SYSOUT=*
+//SYSIN    DD *
+           DELETE <OutputFile> PURGE
+           SET MAXCC = 0
+//*
+//**********************************************************************
+//*    CONVERT FLAT FILE TO EXCEL (CSV)                                *
+//**********************************************************************
+//FFTOCSV  EXEC PGM=SORT,COND=(0,NE)
+//SYSPRINT DD SYSOUT=*
+//SYSOUT   DD SYSOUT=*
+//SORTIN   DD DISP=SHR,DSN=<InputFile>
+//*
+//SORTOUT  DD DSN=<OutputFile>,
+//            DISP=(NEW,CATLG),SPACE=(TRK,(5,5),RLSE),
+//            DCB=(RECFM=FB,LRECL=${CSVlrec})
+//SYMNAMES DD *
+${symNames}
+//SYSIN    DD *
+  OPTION   COPY
+  INREC    FIELDS=(${listaInrec})
+  OUTREC   FIELDS=(1,${CSVlrec},SQZ=(SHIFT=LEFT))
+//*`;
+
+		} else {
+
+			resultado = `//${jobname} JOB ,'CSV to Flat File',MSGCLASS=${MsgClass},CLASS=${Class}
+//**********************************************************************
+//*        IDCAMS: DELETE FILES                                        *
+//**********************************************************************
+//STPDEL01 EXEC PGM=IDCAMS
+//SYSPRINT DD SYSOUT=*
+//SYSIN    DD *
+           DELETE <OutputFile> PURGE
+           SET MAXCC = 0
+//*
+//**********************************************************************
+//*    CONVERT EXCEL (CSV) TO FLAT FILE                                *
+//**********************************************************************
+//CSVTOFF1 EXEC PGM=SORT,COND=(0,NE)
+//SYSPRINT DD SYSOUT=*
+//SYSOUT   DD SYSOUT=*
+//SORTIN   DD DISP=SHR,DSN=<InputFile>
+//*
+//SORTOUT  DD DSN=&&FILE,
+//            DISP=(NEW,CATLG),SPACE=(TRK,(5,5),RLSE)
+//SYSIN    DD *
+  OPTION   COPY
+  OUTFIL   PARSE=(${listaParse}),
+           BUILD=(${listaBuild})
+//*
+//**********************************************************************
+//*    CONVERT EXCEL (CSV) TO FLAT FILE                                *
+//**********************************************************************
+//CSVTOFF2 EXEC PGM=SORT,COND=(0,NE)
+//SYSPRINT DD SYSOUT=*
+//SYSOUT   DD SYSOUT=*
+//SORTIN   DD DISP=SHR,DSN=&&FILE
+//SORTOUT  DD DSN=<OutputFile>,
+//            DISP=(NEW,CATLG),SPACE=(TRK,(5,5),RLSE),
+//            DCB=(RECFM=FB,LRECL=${lrec})
+//SYMNAMES DD *
+${symNames2}
+//SYSIN    DD *
+  SORT     FIELDS=COPY
+  OUTREC   FIELDS=(${listaCSVtoFlat})
+//*`;
+		}
+
+		return resultado;
+
+	}
+
+	function ListaCampos() {
+
+
+		const TipoCampo = {
+			Alfanumerico: 0,
+			Numerico: 1,
+			NumericoSinal: 2,
+			Comp: 3,
+			Comp1: 4,
+			Comp2: 5,
+			Comp3: 6,
+			Comp4: 7,
+			Comp5: 8,
+			Display: 9,
+			National: 10,
+			Binary: 11,
+			NumericoFormatado: 12,
+			Grupo: 13,
+			Switch: 14
+		}
+
+		for (let i = 0; i < copy.Copy.length; i++) {
+
+			const variavel = copy.Copy[i].Variavel.split('-').join('_');
+
+			switch (copy.Copy[i].Tipo) {
+				case TipoCampo.Display:
+				case TipoCampo.Alfanumerico:
+				case TipoCampo.National:
+				case TipoCampo.NumericoFormatado:
+
+
+					listaCSVtoFlat += variavel;
+					listaParse += `%${i}=(ENDBEFR=C'${separadorCSV}',FIXLEN=${copy.Copy[i].tamanhoBruto})`;
+					listaBuild += `%${i}`;
+					listaInrec += variavel;
+
+					fimlinha();
+
+					break;
+
+				case TipoCampo.Numerico:
+				case TipoCampo.NumericoSinal:
+				case TipoCampo.Comp:
+				case TipoCampo.Comp1:
+				case TipoCampo.Comp2:
+				case TipoCampo.Comp4:
+				case TipoCampo.Comp5:
+				case TipoCampo.Binary:
+				case TipoCampo.Comp3:
+
+					listaCSVtoFlat += variavel + `,ZD,TO=${copy.Copy[i].formatoJCL},LENGTH(${copy.Copy[i].Tamanho})`;
+					listaParse += `%${i}=(ENDBEFR=C'${separadorCSV}',FIXLEN=${copy.Copy[i].tamanhoBruto})`;
+					listaBuild += `%${i},SFF,M11,LENGTH=${copy.Copy[i].tamanhoBruto}`;
+					const formatoDecimais = new Array(copy.Copy[i].Decimais + 1).join('T');
+					const formatoInteiro = new Array(copy.Copy[i].tamanhoBruto - copy.Copy[i].Decimais).join('I') + 'T';
+					let formatoi = '';
+					if (copy.Copy[i].Decimais > 0) {
+						formatoi = `${formatoInteiro}${decimal}${formatoDecimais}`;
+					} else {
+						formatoi = formatoInteiro;
+					}
+					listaInrec += variavel + `,\n                   EDIT=(S${formatoi}),SIGNS=(,-)`;
+
+					CSVlrec += formatoi.length + 1;
+
+					fimlinha();
+					break;
+			}
+
+			function fimlinha() {
+
+				symNames2 += `${variavel},${copy.Copy[i].inicioEstendido},${copy.Copy[i].tamanhoBruto}`;
+
+				if (i < copy.Copy.length - 1) {
+					listaInrec += `",C'${separadorCSV}',\n                   `;
+					listaCSVtoFlat += ',\n                   ';
+					listaParse += ',\n                  ';
+					listaBuild += ',\n                  ';
+					symNames2 += '\n';
+					++CSVlrec;
+				}
+
+			}
+		}
+	}
+
+	return resultado;
+
+}
+
+async function abrirFicheiroTXT(sessao, Ficheiro) {
+
+	const FicheiroBinario = (await zos_files.Get.dataSet(sessao, Ficheiro)).toString();
+	// console.log('record ' + FicheiroBinario)
+
+	return FicheiroBinario;
 }
