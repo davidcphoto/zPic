@@ -2,7 +2,7 @@
   "name": "zPic",
   "displayName": "zPic",
   "icon": "Imagens/zPic.png",
-  "repository": {"url": "https://github.com/davidcphoto/zPic2.git"},
+  "repository": {"url": "https://github.com/davidcphoto/zPic.git"},
   "description": "Pic length calculator for Cobol",
   "version": "2.0.0",
   "keywords": ["cobol", "mainframe", "David Canto", "zos", "copybook","pic", "zPic", "copy", "length", "zowe"],
