@@ -24,8 +24,10 @@ function activate(context) {
 	console.log('Congratulations, your extension "zPic" is now active!');
 
 	vscode.window.onDidChangeTextEditorSelection((event) => {
-		const newSelection = event.selections[0];
-		calculaSelecção(newSelection);
+		if (vscode.window.activeTextEditor.document.languageId == "cobol") {
+			const newSelection = event.selections[0];
+			calculaSelecção(newSelection);
+		}
 	});
 
 
@@ -53,8 +55,6 @@ function activate(context) {
 
 				const Total = CalculaLREC(texto);
 				vscode.window.showInformationMessage('zPic - Total length: ' + Total);
-
-
 			});
 
 
@@ -583,6 +583,8 @@ function abreficheiro(texto, Ficheiro = '', extensão = '', tipo = 0) {
 
 			});
 		}
+	} else {
+		vscode.window.showErrorMessage('No workspace defined!');
 	}
 }
 
@@ -623,11 +625,13 @@ function gerrarJCLtexto(Tipo = 0, texto = '') {
 
 
 
-	const jobname = vscode.workspace.getConfiguration('zPic').get('Job.Card.JobName');
-	const Class = vscode.workspace.getConfiguration('zPic').get('Job.Card.Class');
-	const MsgClass = vscode.workspace.getConfiguration('zPic').get('Job.Card.MsgClass');
-	const separadorCSV = vscode.workspace.getConfiguration('zPic').get('CSV.Delimiters');
-	const decimal = vscode.workspace.getConfiguration('zPic').get('CSV.DecimalPlaceDelimiters');
+	InputFile = vscode.workspace.getConfiguration('zPic').get('Job.Files.Input');
+	OutputFile = vscode.workspace.getConfiguration('zPic').get('Job.Files.Output');
+	const jobname = vscode.workspace.getConfiguration('zPic').get('Job.Card.JobName').toUpperCase();
+	const Class = vscode.workspace.getConfiguration('zPic').get('Job.Card.Class').toUpperCase();
+	const MsgClass = vscode.workspace.getConfiguration('zPic').get('Job.Card.MsgClass').toUpperCase();
+	const separadorCSV = vscode.workspace.getConfiguration('zPic').get('CSV.Delimiters').toUpperCase();
+	const decimal = vscode.workspace.getConfiguration('zPic').get('CSV.DecimalPlaceDelimiters').toUpperCase();
 
 	let listaInrec = '';
 	let listaCSVtoFlat = '';
