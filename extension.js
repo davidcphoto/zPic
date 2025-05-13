@@ -21,7 +21,7 @@ let decoration;
  */
 function activate(context) {
 
-	console.log('Congratulations, your extension "zPic" is now active!');
+	// console.log('Congratulations, your extension "zPic" is now active!');
 
 	vscode.window.onDidChangeTextEditorSelection((event) => {
 		if (vscode.window.activeTextEditor.document.languageId == "cobol") {
@@ -33,7 +33,7 @@ function activate(context) {
 
 	let Total_Local = vscode.commands.registerCommand('zPic.Total_Local', function (file = vscode.Uri) {
 
-		console.log('Calcula o tutal de um copybook na maquina local ' + file);
+		// console.log('Calcula o tutal de um copybook na maquina local ' + file);
 
 		vscode.workspace.openTextDocument(file).then((document) => {
 			let text = document.getText();
@@ -66,14 +66,14 @@ function activate(context) {
 
 	let Lista = vscode.commands.registerCommand('zPic.Lista', function () {
 
-		console.log('Lista');
+		// console.log('Lista');
 		calculaLista();
 	});
 
 
 	let Lista_Local = vscode.commands.registerCommand('zPic.Lista_Local', function (file = vscode.Uri) {
 
-		console.log('Lista Local');
+		// console.log('Lista Local');
 
 		vscode.workspace.openTextDocument(file).then((document) => {
 			let texto = document.getText();
@@ -106,7 +106,7 @@ function activate(context) {
 
 	let Symn = vscode.commands.registerCommand('zPic.Symnames', function () {
 
-		console.log('Symnames');
+		// console.log('Symnames');
 		const symnames = Symnames();
 
 		abreficheiro(symnames, 'Symnames', 'jcl', 1);
@@ -115,7 +115,7 @@ function activate(context) {
 
 	let Symn_Local = vscode.commands.registerCommand('zPic.Symnames_Local', function (file = vscode.Uri) {
 
-		console.log('Symnames');
+		// console.log('Symnames');
 
 		vscode.workspace.openTextDocument(file).then((document) => {
 			let texto = document.getText();
@@ -154,7 +154,7 @@ function activate(context) {
 
 	let Flat_CSV = vscode.commands.registerCommand('zPic.Flat_CSV', function () {
 
-		console.log('Convert flat file to CSV');
+		// console.log('Convert flat file to CSV');
 
 		const JCL = gerrarJCL(TipoJCL.FlatToCSV);
 		abreficheiro(JCL, 'FlatFileToCSV', 'jcl');
@@ -164,7 +164,7 @@ function activate(context) {
 
 	let Flat_CSV_Local = vscode.commands.registerCommand('zPic.Flat_CSV_Local', function (file = vscode.Uri) {
 
-		console.log('Flat_CSV Local');
+		// console.log('Flat_CSV Local');
 
 		vscode.workspace.openTextDocument(file).then((document) => {
 			let texto = document.getText();
@@ -203,7 +203,7 @@ function activate(context) {
 
 	let CSV_Flat = vscode.commands.registerCommand('zPic.CSV_Flat', function () {
 
-		console.log('Convert CSV to flat file');
+		// console.log('Convert CSV to flat file');
 		const JCL = gerrarJCL(TipoJCL.CSVToFlat);
 		abreficheiro(JCL, 'CSVToFlatFile', 'jcl');
 
@@ -211,7 +211,7 @@ function activate(context) {
 
 	let CSV_Flat_Local = vscode.commands.registerCommand('zPic.CSV_Flat_Local', function (file = vscode.Uri) {
 
-		console.log('CSV_Flat Local');
+		// console.log('CSV_Flat Local');
 
 		vscode.workspace.openTextDocument(file).then((document) => {
 			let texto = document.getText();
@@ -341,7 +341,7 @@ function Symnames() {
 		texto = new Array(inicio + 1).join(' ') + texto;
 		let copybook = new zPic.Copybook(texto.toUpperCase());
 		const symNames = copybook.obterSymnames();
-		console.log(symNames);
+		// console.log(symNames);
 		return symNames;
 	}
 }
@@ -351,7 +351,7 @@ function SymnamesGerrar(texto) {
 
 	let copybook = new zPic.Copybook(texto.toUpperCase());
 	const symNames = copybook.obterSymnames();
-	console.log(symNames);
+	// console.log(symNames);
 	return symNames;
 }
 
@@ -401,7 +401,7 @@ function calculaSelecção(seleção) {
 
 
 function CalculaLREC(Texto) {
-	console.log("trata Texto " + Texto)
+	// console.log("trata Texto " + Texto)
 	let copybook = new zPic.Copybook(Texto.toUpperCase());
 
 	return copybook.Tamanho;
@@ -409,7 +409,7 @@ function CalculaLREC(Texto) {
 }
 
 function CalculaLista(Texto) {
-	console.log("trata Texto " + Texto)
+	// console.log("trata Texto " + Texto)
 	let copybook = new zPic.Copybook(Texto.toUpperCase());
 
 	return copybook;
@@ -820,7 +820,7 @@ ${symNames2}
 async function abrirFicheiroTXT(sessao, Ficheiro) {
 
 	const FicheiroBinario = (await zos_files.Get.dataSet(sessao, Ficheiro)).toString();
-	// console.log('record ' + FicheiroBinario)
+	// // console.log('record ' + FicheiroBinario)
 
 	return FicheiroBinario;
 }
