@@ -1,15 +1,12 @@
 const vscode = require('vscode');
 const zPic = require("./zPicClass.js");
-// const Imperative = require("@zowe/imperative");
+// import { ProfileInfo } from "@zowe/imperative";
+const imperative = require("@zowe/imperative");
 const zos_files = require("@zowe/zos-files-for-zowe-sdk");
 const zowe_explorer_api = require('@zowe/zowe-explorer-api');
+const { errorMonitor } = require('node:events');
 let InputFile = vscode.workspace.getConfiguration('zPic').get('Job.Files.Input');
 let OutputFile = vscode.workspace.getConfiguration('zPic').get('Job.Files.Output');
-// let InputFile = "${InputFile}";
-// let OutputFile = vscode.workspace.getConfiguration('zPic').get('Job.Files.Output');
-
-// const InputFile = "${InputFile}";
-// const OutputFile = "${OutputFile}";
 
 let decoration;
 
@@ -21,7 +18,7 @@ let decoration;
  */
 function activate(context) {
 
-	// console.log('Congratulations, your extension "zPic" is now active!');
+	console.log('Congratulations, your extension "zPic" is now active!');
 
 	vscode.window.onDidChangeTextEditorSelection((event) => {
 		if (vscode.window.activeTextEditor.document.languageId == "cobol") {
@@ -30,6 +27,19 @@ function activate(context) {
 		}
 	});
 
+	vscode.workspace.onDidChangeConfiguration(event => {
+		const affected = event.affectsConfiguration("zPic.FileNameExtensions");
+		if (affected) {
+			vscode.commands.executeCommand('setContext', 'ext.extensoes', vscode.workspace.getConfiguration('zPic').get('FileNameExtensions'));
+		}
+		const affected2 = event.affectsConfiguration("zPic.DatasetFilters");
+		if (affected2) {
+			vscode.commands.executeCommand('setContext', 'ext.DatasetFilters', vscode.workspace.getConfiguration('zPic').get('DatasetFilters'));
+		}
+	});
+
+	vscode.commands.executeCommand('setContext', 'ext.extensoes', vscode.workspace.getConfiguration('zPic').get('FileNameExtensions'));
+	vscode.commands.executeCommand('setContext', 'ext.DatasetFilters', vscode.workspace.getConfiguration('zPic').get('DatasetFilters'));
 
 	let Total_Local = vscode.commands.registerCommand('zPic.Total_Local', function (file = vscode.Uri) {
 
@@ -66,6 +76,7 @@ function activate(context) {
 
 	let Lista = vscode.commands.registerCommand('zPic.Lista', function () {
 
+		console.log(zowe_explorer_api.ZoweExplorerZosmf.MvsApi.getProfileTypeName());
 		// console.log('Lista');
 		calculaLista();
 	});
@@ -244,23 +255,80 @@ function activate(context) {
 		}
 	});
 
+	let Alocar = vscode.commands.registerCommand('zPic.Alocar', async function () {
 
+		const editor = vscode.window.activeTextEditor;
+		const seleção = editor.selection;
+		const inicio = seleção.start.character;
+
+		if (seleção.end.isAfter(seleção.start)) {
+			let texto = editor.document.getText(seleção);
+			texto = new Array(inicio + 1).join(' ') + texto;
+			const Total = CalculaLREC(texto);
+			obterSessao().then(sessao => {
+				AlocarFX(sessao, Total);
+			}).catch((err) => {
+				console.error(err);
+				process.exit(1);
+			});
+		}
+	});
+
+	let Alocar_Local = vscode.commands.registerCommand('zPic.Alocar_Local', function (file = vscode.Uri) {
+
+		vscode.workspace.openTextDocument(file).then((document) => {
+			let text = document.getText();
+			const Total = CalculaLREC(text);
+			obterSessao().then(sessao => {
+				AlocarFX(sessao, Total);
+			}).catch((err) => {
+				console.error(err);
+				process.exit(1);
+			});
+		});
+
+	});
+
+
+	let Alocar_Central = vscode.commands.registerCommand('zPic.Alocar_Central', function (node = zowe_explorer_api.ZoweTreeNode) {
+
+
+		const Ficheiro = node.label;
+		const sessao = node.mParent.mParent.session;
+		const Biblioteca = node.mParent.label;
+
+		if (sessao) {
+			abrirFicheiroTXT(sessao, Biblioteca + "(" + Ficheiro + ")").then(texto => {
+
+				const Total = CalculaLREC(texto);
+				AlocarFX(sessao, Total);
+			});
+
+
+
+		} else {
+			vscode.window.showErrorMessage('No Zowe Explorer active session')
+		}
+	});
 
 
 	context.subscriptions.push(Lista);
 	context.subscriptions.push(Symn);
 	context.subscriptions.push(Flat_CSV);
 	context.subscriptions.push(CSV_Flat);
+	context.subscriptions.push(Alocar);
 	context.subscriptions.push(Total_Local);
 	context.subscriptions.push(Lista_Local);
 	context.subscriptions.push(Flat_CSV_Local);
 	context.subscriptions.push(CSV_Flat_Local);
+	context.subscriptions.push(Alocar_Local);
 	context.subscriptions.push(Symn_Local);
 	context.subscriptions.push(Total_Central);
 	context.subscriptions.push(Lista_Central);
 	context.subscriptions.push(Symn_Central);
 	context.subscriptions.push(Flat_CSV_Central);
 	context.subscriptions.push(CSV_Flat_Central);
+	context.subscriptions.push(Alocar_Central);
 }
 
 // This method is called when your extension is deactivated
@@ -360,9 +428,10 @@ function calculaSelecção(seleção) {
 
 	let total = 0;
 
-	if (decoration) {
-		decoration.dispose();
-	}
+		if (decoration) {
+			decoration.dispose();
+		}
+
 	const editor = vscode.window.activeTextEditor;
 	const range1 = seleção.start;
 	const range2 = seleção.end;
@@ -371,7 +440,16 @@ function calculaSelecção(seleção) {
 	if (seleção.end.isAfter(seleção.start)) {
 		let texto = editor.document.getText(seleção);
 		texto = new Array(inicio + 1).join(' ') + texto;
-		total = CalculaLREC(texto);
+
+		try {
+			total = CalculaLREC(texto);
+			if (decoration) {
+				decoration.dispose();
+			}
+		}
+		catch (err) {
+			console.log(err.message);
+		}
 	}
 
 
@@ -823,4 +901,56 @@ async function abrirFicheiroTXT(sessao, Ficheiro) {
 	// // console.log('record ' + FicheiroBinario)
 
 	return FicheiroBinario;
+}
+
+function AlocarFX(sessao, Tamanho) {
+
+	const AlocFile = '';
+
+	if (sessao) {
+
+		LerNomeFicheiros(AlocFile, 'Input file', InputFile).then(dataset => {
+
+			const blksize = Tamanho * 10;
+			const dataSetType = zos_files.CreateDataSetTypeEnum.DATA_SET_SEQUENTIAL;
+			const options = {
+				primary: 10,
+				secondary: 1,
+				alcunit: "TRK",
+				lrecl: Tamanho,
+				blksize: blksize
+
+
+			};
+
+			zos_files.Create.dataSet(sessao, dataSetType, dataset, options).then(() => {
+				vscode.window.showInformationMessage(`File ${InputFile} created!`)
+			}).catch((err) => {
+				console.error(err);
+				process.exit(1);
+			});;
+
+		});
+	} else {
+		vscode.window.showErrorMessage('No active Zowe session found!');
+	}
+
+}
+
+async function obterSessao() {
+
+	// (async () => {
+	// Load connection info from default z/OSMF profile
+	const profInfo = new imperative.ProfileInfo("zowe");
+	await profInfo.readProfilesFromDisk();
+	const zosmfProfAttrs = profInfo.getDefaultProfile("zosmf");
+	const zosmfMergedArgs = profInfo.mergeArgsForProfile(zosmfProfAttrs, { getSecureVals: true });
+	const session = imperative.ProfileInfo.createSession(zosmfMergedArgs.knownArgs);
+
+	return session;
+
+	// })().catch((err) => {
+	// 	console.error(err);
+	// 	process.exit(1);
+	// });
 }

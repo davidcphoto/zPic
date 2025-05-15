@@ -8,7 +8,7 @@ zPic Calculator extension calculates the length of the total sum value from the 
 All features can be accessed by right clicking and accessing the zPic menu options. The menu is available for cobol programs and copybooks on:
 - [x] Open documents when language id is *cobol* and list of variables is selected.
 - [x] Documents selected on the VS Code Explorer with the extensions .cpy, .copy, .cbl, .cob.
-- [x] Documents selected on the Zowe Explorer with the extensions .cpy, .copy, .cbl, .cob.
+- [x] Documents selected on the Zowe Explorer.
 
 
 ![Menu.png](Imagens/Menu.png)
@@ -82,7 +82,7 @@ This extension contributes the following settings:
 
 ## Known Issues
 
-n/a
+- File extensions added to, or removed from, the settings definition are only available at restart.
 
 ## Release Notes
 

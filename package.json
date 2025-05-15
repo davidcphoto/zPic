@@ -7,7 +7,7 @@
     "url": "https://github.com/davidcphoto/zPic.git"
   },
   "description": "Pic length calculator for Cobol",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "keywords": [
     "cobol",
     "mainframe",
@@ -49,6 +49,10 @@
         "title": "zPic - Generate Job to convert a CSV file to Flat File"
       },
       {
+      "command": "zPic.Alocar",
+      "title": "zPic - Allocate file with copybook size"
+      },
+      {
         "command": "zPic.Total_Local",
         "title": "zPic - Total length"
       },
@@ -69,6 +73,10 @@
         "title": "zPic - Generate Job to convert a CSV file to Flat File"
       },
       {
+      "command": "zPic.Alocar_Local",
+      "title": "zPic - Allocate file with copybook size"
+      },
+      {
         "command": "zPic.Total_Central",
         "title": "zPic - Total length"
       },
@@ -87,6 +95,10 @@
       {
         "command": "zPic.CSV_Flat_Central",
         "title": "zPic - Generate Job to convert a CSV file to Flat File"
+      },
+      {
+      "command": "zPic.Alocar_Central",
+      "title": "zPic - Allocate file with copybook size"
       }
     ],
     "submenus": [
@@ -125,7 +137,7 @@
       ],
       "explorer/context": [
         {
-          "when": "resourceExtname   == .cpy || resourceExtname   == .copy || resourceExtname   == .copybook",
+          "when": "resourceExtname in ext.extensoes",
           "submenu": "zPic.submenu_Local",
           "group": "200_zPic"
         }
@@ -139,16 +151,20 @@
       ],
       "zPic.submenu": [
         {
-          "command": "zPic.Lista",
+          "command": "zPic.Alocar",
           "group": "110_Zpic@1"
         },
         {
-          "command": "zPic.Symnames",
+          "command": "zPic.Lista",
           "group": "110_Zpic@2"
         },
         {
+          "command": "zPic.Symnames",
+          "group": "110_Zpic@3"
+        },
+        {
           "submenu": "zPic.submenuJCL",
-          "group": "120_Zpic@3"
+          "group": "120_Zpic@4"
         }
       ],
       "zPic.submenuJCL": [
@@ -163,20 +179,24 @@
       ],
       "zPic.submenu_Local": [
         {
-          "command": "zPic.Total_Local",
+          "command": "zPic.Alocar_Local",
           "group": "210_Zpic@1"
         },
         {
-          "command": "zPic.Lista_Local",
+          "command": "zPic.Total_Local",
           "group": "210_Zpic@2"
         },
         {
-          "command": "zPic.Symnames_Local",
+          "command": "zPic.Lista_Local",
           "group": "210_Zpic@3"
         },
         {
+          "command": "zPic.Symnames_Local",
+          "group": "210_Zpic@4"
+        },
+        {
           "submenu": "zPic.submenuJCL_Local",
-          "group": "220_Zpic@3"
+          "group": "220_Zpic@5"
         }
       ],
       "zPic.submenuJCL_Local": [
@@ -191,20 +211,24 @@
       ],
       "zPic.submenu_Central": [
         {
-          "command": "zPic.Total_Central",
+          "command": "zPic.Alocar_Central",
           "group": "310_Zpic@1"
         },
         {
-          "command": "zPic.Lista_Central",
+          "command": "zPic.Total_Central",
           "group": "310_Zpic@2"
         },
         {
-          "command": "zPic.Symnames_Central",
+          "command": "zPic.Lista_Central",
           "group": "310_Zpic@3"
         },
         {
+          "command": "zPic.Symnames_Central",
+          "group": "310_Zpic@4"
+        },
+        {
           "submenu": "zPic.submenuJCL_Central",
-          "group": "320_Zpic@3"
+          "group": "320_Zpic@5"
         }
       ],
       "zPic.submenuJCL_Central": [
@@ -221,6 +245,38 @@
     "configuration": {
       "title": "ZPic calculator",
       "properties": {
+        "zPic.FileNameExtensions": {
+          "type": "array",
+          "description": "A list file name extensions for copybooks files.",
+          "order": 1,
+          "minItems": 0,
+          "maxItems": 20,
+          "default": [
+            ".cpy",
+            ".cbl",
+            ".copy",
+            ".copybook"
+          ],
+          "items": {
+            "type": "string"
+          },
+          "additionalProperties": false
+        },
+        "zPic.DatasetFilters": {
+          "type": "array",
+          "description": "A list file dataset filters for copybooks files.",
+          "order": 1,
+          "minItems": 0,
+          "maxItems": 20,
+          "default": [
+            "COPY",
+            "COPYBOOK"
+          ],
+          "items": {
+            "type": "string"
+          },
+          "additionalProperties": false
+        },
         "zPic.Job.Card.JobName": {
           "type": "string",
           "description": "Name to be used in the definition in the definition of both jcl to convert *csv* files to *flat files*.",
@@ -310,6 +366,7 @@
     "typescript": "^5.2.2"
   },
   "dependencies": {
+    "@zowe/imperative": "^8.20.0",
     "@zowe/zos-files-for-zowe-sdk": "^8.20.0",
     "@zowe/zowe-explorer-api": "^3.2.0"
   }

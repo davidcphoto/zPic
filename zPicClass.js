@@ -40,9 +40,11 @@ exports.Copybook = class {
 
             TrataRedefines(linha);
 
-            if (linha.Nivel) {
-                if (linha.Nivel != 88) {
-                    copy.push(linha);
+            if (linha.ok) {
+                if (linha.Nivel) {
+                    if (linha.Nivel != 88) {
+                        copy.push(linha);
+                    }
                 }
             }
         }
@@ -64,7 +66,6 @@ exports.Copybook = class {
                         linha.Fim = copy[j].Fim;
                         linha.inicioEstendido = copy[j].inicioEstendido;
                         linha.FimEstendido = copy[j].FimEstendido;
-                        // linha.ListaOccurs = copy[j].ListaOccurs;
                         linha.Tamanho = copy[j].Tamanho;
                     }
                 }
@@ -112,7 +113,7 @@ exports.Copybook = class {
                     for (let j = 0; j < grupo[i].Occurs; j++) {
                         const fim = inicio + tamanho - 1;
                         const fimestendido = inicioestendido + tamanhoestendido - 1
-                        tempSoma.push({ "Inicio": inicio, "Fim": fim, "Tamanho":tamanho, "inicioEstendido": inicioestendido, "FimEstendido": fimestendido });
+                        tempSoma.push({ "Inicio": inicio, "Fim": fim, "Tamanho": tamanho, "inicioEstendido": inicioestendido, "FimEstendido": fimestendido });
 
                         if (j < grupo[i].Occurs - 1) {
                             inicio += tamanho;
@@ -134,7 +135,7 @@ exports.Copybook = class {
                 }
                 // }
             }
-            return [{ "Inicio": Inicio, "Fim": grupo[grupo.length - 1].Posição[grupo[grupo.length - 1].Posição.length - 1].Fim, "Tamanho": tamanho,  "inicioEstendido": InicioEstendido, "FimEstendido": grupo[grupo.length - 1].Posição[grupo[grupo.length - 1].Posição.length - 1].FimEstendido }];
+            return [{ "Inicio": Inicio, "Fim": grupo[grupo.length - 1].Posição[grupo[grupo.length - 1].Posição.length - 1].Fim, "Tamanho": tamanho, "inicioEstendido": InicioEstendido, "FimEstendido": grupo[grupo.length - 1].Posição[grupo[grupo.length - 1].Posição.length - 1].FimEstendido }];
         }
 
     }
@@ -207,7 +208,7 @@ exports.Copybook = class {
                             linhaSymName += '\n' + SymnamesFilhos(lista[i].Filhos, versão, j);
                         }
 
-                        if (!linhaSymName.endsWith('\n') && i<lista.length-1) {
+                        if (!linhaSymName.endsWith('\n') && i < lista.length - 1) {
                             linhaSymName += '\n';
                         }
                     }
@@ -240,6 +241,7 @@ class Linha {
         let posRedefines = 0;
         let posFormatada = 0;
         this.Decimais = 0;
+        this.ok = false;
 
 
         if (linha.endsWith('.')) {
@@ -415,6 +417,8 @@ class Linha {
             this.Fim = inicio + this.Tamanho - 1;
             this.FimEstendido = inicioestendido + this.tamanhoBruto - 1;
         }
+
+        this.ok = true;
     }
 }
 
