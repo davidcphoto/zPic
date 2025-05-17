@@ -1,5 +1,8 @@
 # Change Log
 
+## [2.0.2]
+
+- Add the ability to allocate a file in Zowe Explorer.
 
 ## [2.0.1]
 

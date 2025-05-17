@@ -4,7 +4,8 @@ const zPic = require("./zPicClass.js");
 const imperative = require("@zowe/imperative");
 const zos_files = require("@zowe/zos-files-for-zowe-sdk");
 const zowe_explorer_api = require('@zowe/zowe-explorer-api');
-const { errorMonitor } = require('node:events');
+const zosmf = require('@zowe/zosmf-for-zowe-sdk');
+
 let InputFile = vscode.workspace.getConfiguration('zPic').get('Job.Files.Input');
 let OutputFile = vscode.workspace.getConfiguration('zPic').get('Job.Files.Output');
 
@@ -32,18 +33,23 @@ function activate(context) {
 		if (affected) {
 			vscode.commands.executeCommand('setContext', 'ext.extensoes', vscode.workspace.getConfiguration('zPic').get('FileNameExtensions'));
 		}
-		const affected2 = event.affectsConfiguration("zPic.DatasetFilters");
-		if (affected2) {
-			vscode.commands.executeCommand('setContext', 'ext.DatasetFilters', vscode.workspace.getConfiguration('zPic').get('DatasetFilters'));
-		}
+		// const affected2 = event.affectsConfiguration("zPic.DatasetFilters");
+		// if (affected2) {
+		// 	vscode.commands.executeCommand('setContext', 'ext.DatasetFilters', vscode.workspace.getConfiguration('zPic').get('DatasetFilters'));
+		// }
 	});
 
+
+
 	vscode.commands.executeCommand('setContext', 'ext.extensoes', vscode.workspace.getConfiguration('zPic').get('FileNameExtensions'));
-	vscode.commands.executeCommand('setContext', 'ext.DatasetFilters', vscode.workspace.getConfiguration('zPic').get('DatasetFilters'));
+	// vscode.commands.executeCommand('setContext', 'ext.DatasetFilters', vscode.workspace.getConfiguration('zPic').get('DatasetFilters'));
 
 	let Total_Local = vscode.commands.registerCommand('zPic.Total_Local', function (file = vscode.Uri) {
 
 		// console.log('Calcula o tutal de um copybook na maquina local ' + file);
+
+		// vscode.window.showInformationMessage(`encontrar ficheiro  [WKD.K.TESTES](command:zowe.jobs.setsetDSPath?%5B%22zosmf%22%2C%22WKD.K.TESTES%22%5D)`);
+
 
 		vscode.workspace.openTextDocument(file).then((document) => {
 			let text = document.getText();
@@ -255,39 +261,39 @@ function activate(context) {
 		}
 	});
 
-	let Alocar = vscode.commands.registerCommand('zPic.Alocar', async function () {
+	// let Alocar = vscode.commands.registerCommand('zPic.Alocar', function () {
 
-		const editor = vscode.window.activeTextEditor;
-		const seleção = editor.selection;
-		const inicio = seleção.start.character;
+	// 	const editor = vscode.window.activeTextEditor;
+	// 	const seleção = editor.selection;
+	// 	const inicio = seleção.start.character;
 
-		if (seleção.end.isAfter(seleção.start)) {
-			let texto = editor.document.getText(seleção);
-			texto = new Array(inicio + 1).join(' ') + texto;
-			const Total = CalculaLREC(texto);
-			obterSessao().then(sessao => {
-				AlocarFX(sessao, Total);
-			}).catch((err) => {
-				console.error(err);
-				process.exit(1);
-			});
-		}
-	});
+	// 	if (seleção.end.isAfter(seleção.start)) {
+	// 		let texto = editor.document.getText(seleção);
+	// 		texto = new Array(inicio + 1).join(' ') + texto;
+	// 		const Total = CalculaLREC(texto);
+	// 		obterSessao().then(sessao => {
+	// 			AlocarFX(sessao, Total);
+	// 		}).catch((err) => {
+	// 			console.error(err);
+	// 			process.exit(1);
+	// 		});
+	// 	}
+	// });
 
-	let Alocar_Local = vscode.commands.registerCommand('zPic.Alocar_Local', function (file = vscode.Uri) {
+	// let Alocar_Local = vscode.commands.registerCommand('zPic.Alocar_Local', function (file = vscode.Uri) {
 
-		vscode.workspace.openTextDocument(file).then((document) => {
-			let text = document.getText();
-			const Total = CalculaLREC(text);
-			obterSessao().then(sessao => {
-				AlocarFX(sessao, Total);
-			}).catch((err) => {
-				console.error(err);
-				process.exit(1);
-			});
-		});
+	// 	vscode.workspace.openTextDocument(file).then((document) => {
+	// 		let text = document.getText();
+	// 		const Total = CalculaLREC(text);
+	// 		obterSessao().then(sessao => {
+	// 			AlocarFX(sessao, Total);
+	// 		}).catch((err) => {
+	// 			console.error(err);
+	// 			process.exit(1);
+	// 		});
+	// 	});
 
-	});
+	// });
 
 
 	let Alocar_Central = vscode.commands.registerCommand('zPic.Alocar_Central', function (node = zowe_explorer_api.ZoweTreeNode) {
@@ -316,12 +322,12 @@ function activate(context) {
 	context.subscriptions.push(Symn);
 	context.subscriptions.push(Flat_CSV);
 	context.subscriptions.push(CSV_Flat);
-	context.subscriptions.push(Alocar);
+	// context.subscriptions.push(Alocar);
 	context.subscriptions.push(Total_Local);
 	context.subscriptions.push(Lista_Local);
 	context.subscriptions.push(Flat_CSV_Local);
 	context.subscriptions.push(CSV_Flat_Local);
-	context.subscriptions.push(Alocar_Local);
+	// context.subscriptions.push(Alocar_Local);
 	context.subscriptions.push(Symn_Local);
 	context.subscriptions.push(Total_Central);
 	context.subscriptions.push(Lista_Central);
@@ -879,7 +885,7 @@ ${symNames2}
 				symNames2 += `${variavel},${copy.Copy[i].inicioEstendido},${copy.Copy[i].tamanhoBruto}`;
 
 				if (i < copy.Copy.length - 1) {
-					listaInrec += `",C'${separadorCSV}',\n                   `;
+					listaInrec += `,C'${separadorCSV}',\n                   `;
 					listaCSVtoFlat += ',\n                   ';
 					listaParse += ',\n                  ';
 					listaBuild += ',\n                  ';
@@ -909,7 +915,7 @@ function AlocarFX(sessao, Tamanho) {
 
 	if (sessao) {
 
-		LerNomeFicheiros(AlocFile, 'Input file', InputFile).then(dataset => {
+		LerNomeFicheiros(AlocFile, 'Input file').then(dataset => {
 
 			const blksize = Tamanho * 10;
 			const dataSetType = zos_files.CreateDataSetTypeEnum.DATA_SET_SEQUENTIAL;
@@ -925,6 +931,8 @@ function AlocarFX(sessao, Tamanho) {
 
 			zos_files.Create.dataSet(sessao, dataSetType, dataset, options).then(() => {
 				vscode.window.showInformationMessage(`File ${InputFile} created!`)
+				// zosmf.ZosmfSession
+				vscode.window.showInformationMessage(`Job submitted [JOB74552](command:zowe.jobs.setsetDSPath?%5B%22zosmf%22%2C%22${InputFile}%22%5D)`);
 			}).catch((err) => {
 				console.error(err);
 				process.exit(1);
@@ -946,6 +954,7 @@ async function obterSessao() {
 	const zosmfProfAttrs = profInfo.getDefaultProfile("zosmf");
 	const zosmfMergedArgs = profInfo.mergeArgsForProfile(zosmfProfAttrs, { getSecureVals: true });
 	const session = imperative.ProfileInfo.createSession(zosmfMergedArgs.knownArgs);
+
 
 	return session;
 

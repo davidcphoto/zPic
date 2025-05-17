@@ -49,10 +49,6 @@
         "title": "zPic - Generate Job to convert a CSV file to Flat File"
       },
       {
-      "command": "zPic.Alocar",
-      "title": "zPic - Allocate file with copybook size"
-      },
-      {
         "command": "zPic.Total_Local",
         "title": "zPic - Total length"
       },
@@ -71,10 +67,6 @@
       {
         "command": "zPic.CSV_Flat_Local",
         "title": "zPic - Generate Job to convert a CSV file to Flat File"
-      },
-      {
-      "command": "zPic.Alocar_Local",
-      "title": "zPic - Allocate file with copybook size"
       },
       {
         "command": "zPic.Total_Central",
@@ -151,10 +143,6 @@
       ],
       "zPic.submenu": [
         {
-          "command": "zPic.Alocar",
-          "group": "110_Zpic@1"
-        },
-        {
           "command": "zPic.Lista",
           "group": "110_Zpic@2"
         },
@@ -178,10 +166,6 @@
         }
       ],
       "zPic.submenu_Local": [
-        {
-          "command": "zPic.Alocar_Local",
-          "group": "210_Zpic@1"
-        },
         {
           "command": "zPic.Total_Local",
           "group": "210_Zpic@2"
