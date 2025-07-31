@@ -4,7 +4,7 @@ const zPic = require("./zPicClass.js");
 const imperative = require("@zowe/imperative");
 const zos_files = require("@zowe/zos-files-for-zowe-sdk");
 const zowe_explorer_api = require('@zowe/zowe-explorer-api');
-const zosmf = require('@zowe/zosmf-for-zowe-sdk');
+// const zosmf = require('@zowe/zosmf-for-zowe-sdk');
 
 let InputFile = vscode.workspace.getConfiguration('zPic').get('Job.Files.Input');
 let OutputFile = vscode.workspace.getConfiguration('zPic').get('Job.Files.Output');
@@ -18,6 +18,7 @@ let decoration;
  * @param {vscode.ExtensionContext} context
  */
 function activate(context) {
+
 
 	console.log('Congratulations, your extension "zPic" is now active!');
 
@@ -33,10 +34,6 @@ function activate(context) {
 		if (affected) {
 			vscode.commands.executeCommand('setContext', 'ext.extensoes', vscode.workspace.getConfiguration('zPic').get('FileNameExtensions'));
 		}
-		// const affected2 = event.affectsConfiguration("zPic.DatasetFilters");
-		// if (affected2) {
-		// 	vscode.commands.executeCommand('setContext', 'ext.DatasetFilters', vscode.workspace.getConfiguration('zPic').get('DatasetFilters'));
-		// }
 	});
 
 
@@ -463,9 +460,9 @@ function calculaSelecção(seleção) {
 		decoration = vscode.window.createTextEditorDecorationType({
 			isWholeLine: true,
 			textDecoration: 'underline solid green 1px',
+
 			after: {
-				contentText: `zPic Total: ${total}`,
-				border: '15px',
+				contentText: `> zPic Total: ${total}`,
 				backgroundColor: 'var(--vscode-button-background)',
 				color: 'var(--vscode-button-foreground)',
 				margin: '15px',
@@ -846,6 +843,7 @@ ${symNames2}
 					listaParse += `%${i}=(ENDBEFR=C'${separadorCSV}',FIXLEN=${copy.Copy[i].tamanhoBruto})`;
 					listaBuild += `%${i}`;
 					listaInrec += variavel;
+					CSVlrec += copy.Copy[i].tamanhoBruto;
 
 					fimlinha();
 

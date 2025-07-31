@@ -1,5 +1,9 @@
 # Change Log
 
+## [2.0.3]
+
+- Fixed the _"zPic - Generate Job to convert a Flat File to CSV File"_ file size bug.
+
 ## [2.0.2]
 
 - Add the ability to allocate a file in Zowe Explorer.
