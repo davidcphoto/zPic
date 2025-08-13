@@ -89,8 +89,8 @@
         "title": "zPic - Generate Job to convert a CSV file to Flat File"
       },
       {
-      "command": "zPic.Alocar_Central",
-      "title": "zPic - Allocate file with copybook size"
+        "command": "zPic.Alocar_Central",
+        "title": "zPic - Allocate file with copybook size"
       }
     ],
     "submenus": [
@@ -341,17 +341,17 @@
   },
   "devDependencies": {
     "@types/mocha": "^10.0.2",
-    "@types/node": "18.x",
-    "@types/vscode": "^1.99.0",
+    "@types/node": "^24.2.1",
+    "@types/vscode": "^1.102.0",
     "@vscode/test-electron": "^2.3.4",
-    "eslint": "^8.50.0",
-    "glob": "^10.3.3",
-    "mocha": "^10.2.0",
-    "typescript": "^5.2.2"
+    "eslint": "^9.33.0",
+    "glob": "^11.0.3",
+    "mocha": "^11.7.1",
+    "typescript": "^5.9.2"
   },
   "dependencies": {
-    "@zowe/imperative": "^8.20.0",
-    "@zowe/zos-files-for-zowe-sdk": "^8.20.0",
-    "@zowe/zowe-explorer-api": "^3.2.0"
+    "@zowe/imperative": "^8.26.2",
+    "@zowe/zos-files-for-zowe-sdk": "^8.26.2",
+    "@zowe/zowe-explorer-api": "^3.2.2"
   }
 }
