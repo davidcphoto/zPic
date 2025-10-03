@@ -1,5 +1,9 @@
 # Change Log
 
+## [2.0.5]
+
+- Updated dependencies.
+
 ## [2.0.4]
 
 - Updated dependencies.
