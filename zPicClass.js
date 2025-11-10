@@ -1,3 +1,4 @@
+const { isNumberObject } = require("util/types");
 
 
 const tipoSynNames = {
@@ -282,7 +283,7 @@ class Linha {
         if (posValor == 0) {
             this.tamanhoBruto = 0;
         } else {
-            if (linhaSeparada.length > posValor) {
+            if (linhaSeparada.length > posValor && !isNaN(Number(linhaSeparada[posValor]))) {
                 this.tamanhoBruto = Number(linhaSeparada[posValor]);
             } else {
                 this.tamanhoBruto = linhaSeparada[posFormatada].length;
@@ -313,7 +314,8 @@ class Linha {
                     this.Tipo = validaNumericos(linha);
                     break;
                 default:
-                    this.Tipo = TipoCampo.NumericoFormatado;
+                    // this.Tipo = TipoCampo.NumericoFormatado;
+                    this.Tipo = validaNumericos(linha);
                     break;
 
             }
@@ -583,7 +585,7 @@ function removeSeqnumAste(fullText) {
     for (let i = 0; i < fullTextArray.length; ++i) {
 
 
-        if (fullTextArray[i].trim().length > 6) {
+        if (fullTextArray[i].substring(7, 72).trim().length > 0) {
 
             if (fullTextArray[i].substring(6, 7) != '*' && fullTextArray[i].substring(7, 72).trim().length > 0) {
 
